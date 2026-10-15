@@ -1,0 +1,20 @@
+#PYTHON
+# Código compilado y cachés generadas automáticamente.
+__pycache__/
+*.py[cod]
+*$py.class
+
+#cahe creada por pytest
+.pytest_cache/
+
+#Reportes de cobertura de pruebas
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+#Caches de herramientas de análisis
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
