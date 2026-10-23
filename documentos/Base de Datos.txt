@@ -1,0 +1,717 @@
+-- ============================================================
+-- 1. CORE INSTITUCIONAL
+-- ============================================================
+
+CREATE SCHEMA core;
+
+
+-- PERSONAS
+CREATE TABLE core.personas (
+    id_persona BIGSERIAL PRIMARY KEY,
+    cedula VARCHAR(20),
+    nombres VARCHAR(100),
+    apellidos VARCHAR(100),
+    correo VARCHAR(150),
+    telefono VARCHAR(20),
+    fecha_nacimiento DATE,
+    direccion TEXT,
+    estado BOOLEAN
+);
+
+
+-- USUARIOS
+CREATE TABLE core.usuarios (
+    id_usuario BIGSERIAL PRIMARY KEY,
+    id_persona BIGINT REFERENCES core.personas(id_persona),
+    nombre_usuario VARCHAR(100),
+    correo_institucional VARCHAR(150),
+    contrasena_hash TEXT,
+    estado BOOLEAN,
+    fecha_creacion TIMESTAMP
+);
+
+
+-- ROLES
+CREATE TABLE core.roles (
+    id_rol BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT,
+    estado BOOLEAN
+);
+
+
+-- PERMISOS
+CREATE TABLE core.permisos (
+    id_permiso BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT,
+    accion VARCHAR(100),
+    estado BOOLEAN
+);
+
+
+-- MODULOS
+CREATE TABLE core.modulos (
+    id_modulo BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT,
+    estado BOOLEAN
+);
+
+
+-- DEPARTAMENTOS / UNIDADES
+CREATE TABLE core.unidades (
+    id_unidad BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(150),
+    descripcion TEXT,
+    estado BOOLEAN
+);
+
+
+-- ESTUDIANTES
+CREATE TABLE core.estudiantes (
+    id_estudiante BIGSERIAL PRIMARY KEY,
+    id_persona BIGINT REFERENCES core.personas(id_persona),
+    codigo_estudiante VARCHAR(50),
+    estado BOOLEAN
+);
+
+
+-- EMPLEADOS
+CREATE TABLE core.empleados (
+    id_empleado BIGSERIAL PRIMARY KEY,
+    id_persona BIGINT REFERENCES core.personas(id_persona),
+    id_unidad BIGINT REFERENCES core.unidades(id_unidad),
+    codigo_empleado VARCHAR(50),
+    cargo VARCHAR(100),
+    fecha_ingreso DATE,
+    estado BOOLEAN
+);
+
+
+-- CATALOGOS ACADEMICOS
+CREATE TABLE core.catalogos_academicos (
+    id_catalogo BIGSERIAL PRIMARY KEY,
+    tipo VARCHAR(100),
+    codigo VARCHAR(50),
+    nombre VARCHAR(150),
+    descripcion TEXT,
+    estado BOOLEAN
+);
+
+
+-- AUDITORIA
+CREATE TABLE core.auditoria (
+    id_auditoria BIGSERIAL PRIMARY KEY,
+    id_usuario BIGINT REFERENCES core.usuarios(id_usuario),
+    modulo VARCHAR(100),
+    accion VARCHAR(100),
+    tabla_afectada VARCHAR(100),
+    id_registro BIGINT,
+    fecha_hora TIMESTAMP,
+    direccion_ip VARCHAR(50)
+);
+
+-- ============================================================
+-- TABLA INTERMEDIA USUARIO - ROL
+-- CORE INSTITUCIONAL
+-- ============================================================
+
+CREATE TABLE core.usuario_rol (
+    id_usuario_rol BIGSERIAL PRIMARY KEY,
+    id_usuario BIGINT REFERENCES core.usuarios(id_usuario),
+    id_rol BIGINT REFERENCES core.roles(id_rol),
+    fecha_asignacion TIMESTAMP,
+    estado BOOLEAN
+);
+
+-- ============================================================
+-- 2. ADMISION
+-- ============================================================
+
+CREATE SCHEMA admision;
+
+
+-- CRM
+CREATE TABLE admision.crm (
+    id_crm BIGSERIAL PRIMARY KEY,
+    id_persona BIGINT REFERENCES core.personas(id_persona),
+    id_responsable BIGINT REFERENCES core.empleados(id_empleado),
+    origen VARCHAR(100),
+    estado VARCHAR(50),
+    fecha_registro TIMESTAMP,
+    observacion TEXT
+);
+
+
+-- ASPIRANTES
+CREATE TABLE admision.aspirantes (
+    id_aspirante BIGSERIAL PRIMARY KEY,
+    id_persona BIGINT REFERENCES core.personas(id_persona),
+    id_crm BIGINT REFERENCES admision.crm(id_crm),
+    carrera_interes VARCHAR(150),
+    periodo_interes VARCHAR(100),
+    estado VARCHAR(50),
+    fecha_registro TIMESTAMP
+);
+
+
+-- EXPEDIENTES
+CREATE TABLE admision.expedientes (
+    id_expediente BIGSERIAL PRIMARY KEY,
+    id_aspirante BIGINT REFERENCES admision.aspirantes(id_aspirante),
+    codigo_expediente VARCHAR(50),
+    fecha_apertura DATE,
+    estado VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- PAGOS
+CREATE TABLE admision.pagos (
+    id_pago BIGSERIAL PRIMARY KEY,
+    id_expediente BIGINT REFERENCES admision.expedientes(id_expediente),
+    concepto VARCHAR(150),
+    monto NUMERIC(12,2),
+    fecha_pago DATE,
+    estado VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- DOCUMENTOS
+CREATE TABLE admision.documentos (
+    id_documento BIGSERIAL PRIMARY KEY,
+    id_expediente BIGINT REFERENCES admision.expedientes(id_expediente),
+    tipo_documento VARCHAR(100),
+    nombre_archivo VARCHAR(255),
+    ruta_archivo TEXT,
+    fecha_carga TIMESTAMP,
+    estado VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- MATRICULA
+CREATE TABLE admision.matricula (
+    id_matricula BIGSERIAL PRIMARY KEY,
+    id_expediente BIGINT REFERENCES admision.expedientes(id_expediente),
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    codigo_matricula VARCHAR(50),
+    fecha_matricula DATE,
+    estado VARCHAR(50)
+);
+
+
+
+-- ============================================================
+-- 3. MENTORIA
+-- ============================================================
+
+CREATE SCHEMA mentoria;
+
+
+-- INCIDENCIAS
+CREATE TABLE mentoria.incidencias (
+    id_incidencia BIGSERIAL PRIMARY KEY,
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    id_responsable BIGINT REFERENCES core.empleados(id_empleado),
+    asunto VARCHAR(200),
+    descripcion TEXT,
+    prioridad VARCHAR(50),
+    estado VARCHAR(50),
+    fecha_registro TIMESTAMP,
+    fecha_cierre TIMESTAMP
+);
+
+
+-- SEGUIMIENTO
+CREATE TABLE mentoria.seguimiento (
+    id_seguimiento BIGSERIAL PRIMARY KEY,
+    id_incidencia BIGINT REFERENCES mentoria.incidencias(id_incidencia),
+    id_responsable BIGINT REFERENCES core.empleados(id_empleado),
+    fecha TIMESTAMP,
+    accion_realizada TEXT,
+    resultado TEXT,
+    proxima_accion TEXT
+);
+
+
+-- DERIVACIONES
+CREATE TABLE mentoria.derivaciones (
+    id_derivacion BIGSERIAL PRIMARY KEY,
+    id_incidencia BIGINT REFERENCES mentoria.incidencias(id_incidencia),
+    id_unidad BIGINT REFERENCES core.unidades(id_unidad),
+    fecha_derivacion TIMESTAMP,
+    motivo TEXT,
+    observacion TEXT,
+    estado VARCHAR(50)
+);
+
+
+-- FAQ
+CREATE TABLE mentoria.faq (
+    id_faq BIGSERIAL PRIMARY KEY,
+    pregunta TEXT,
+    respuesta TEXT,
+    categoria VARCHAR(100),
+    estado BOOLEAN
+);
+
+
+
+-- ============================================================
+-- 4. CALIDAD
+-- ============================================================
+
+CREATE SCHEMA calidad;
+
+
+-- AREAS
+CREATE TABLE calidad.areas (
+    id_area BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(150),
+    descripcion TEXT,
+    estado BOOLEAN
+);
+
+
+-- INDICADORES
+CREATE TABLE calidad.indicadores (
+    id_indicador BIGSERIAL PRIMARY KEY,
+    id_area BIGINT REFERENCES calidad.areas(id_area),
+    codigo VARCHAR(50),
+    criterio VARCHAR(200),
+    subcriterio VARCHAR(200),
+    indicador TEXT,
+    estado BOOLEAN
+);
+
+
+-- EVIDENCIAS
+CREATE TABLE calidad.evidencias (
+    id_evidencia BIGSERIAL PRIMARY KEY,
+    id_indicador BIGINT REFERENCES calidad.indicadores(id_indicador),
+    id_responsable BIGINT REFERENCES core.empleados(id_empleado),
+    nombre_archivo VARCHAR(255),
+    ruta_archivo TEXT,
+    fecha_carga TIMESTAMP,
+    estado VARCHAR(50)
+);
+
+
+-- REVISIONES
+CREATE TABLE calidad.revisiones (
+    id_revision BIGSERIAL PRIMARY KEY,
+    id_evidencia BIGINT REFERENCES calidad.evidencias(id_evidencia),
+    id_revisor BIGINT REFERENCES core.empleados(id_empleado),
+    fecha_revision TIMESTAMP,
+    resultado VARCHAR(50),
+    observacion TEXT
+);
+
+
+
+-- ============================================================
+-- 5. PPP
+-- ============================================================
+
+CREATE SCHEMA ppp;
+
+
+-- EMPRESAS
+CREATE TABLE ppp.empresas (
+    id_empresa BIGSERIAL PRIMARY KEY,
+    ruc VARCHAR(20),
+    razon_social VARCHAR(200),
+    sector VARCHAR(100),
+    direccion TEXT,
+    contacto VARCHAR(150),
+    telefono VARCHAR(20),
+    correo VARCHAR(150),
+    estado BOOLEAN
+);
+
+
+-- CONVENIOS
+CREATE TABLE ppp.convenios (
+    id_convenio BIGSERIAL PRIMARY KEY,
+    id_empresa BIGINT REFERENCES ppp.empresas(id_empresa),
+    numero_convenio VARCHAR(50),
+    tipo VARCHAR(100),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(50)
+);
+
+
+-- CONVOCATORIAS
+CREATE TABLE ppp.convocatorias (
+    id_convocatoria BIGSERIAL PRIMARY KEY,
+    id_empresa BIGINT REFERENCES ppp.empresas(id_empresa),
+    titulo VARCHAR(200),
+    descripcion TEXT,
+    numero_cupos INTEGER,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(50)
+);
+
+
+-- POSTULACIONES
+CREATE TABLE ppp.postulaciones (
+    id_postulacion BIGSERIAL PRIMARY KEY,
+    id_convocatoria BIGINT REFERENCES ppp.convocatorias(id_convocatoria),
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    fecha_postulacion TIMESTAMP,
+    estado VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- PRACTICAS
+CREATE TABLE ppp.practicas (
+    id_practica BIGSERIAL PRIMARY KEY,
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    id_empresa BIGINT REFERENCES ppp.empresas(id_empresa),
+    id_convenio BIGINT REFERENCES ppp.convenios(id_convenio),
+    id_tutor BIGINT REFERENCES core.empleados(id_empleado),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    horas_planificadas INTEGER,
+    horas_ejecutadas INTEGER,
+    estado VARCHAR(50)
+);
+
+
+-- TUTORIAS
+CREATE TABLE ppp.tutorias (
+    id_tutoria BIGSERIAL PRIMARY KEY,
+    id_practica BIGINT REFERENCES ppp.practicas(id_practica),
+    id_tutor BIGINT REFERENCES core.empleados(id_empleado),
+    fecha TIMESTAMP,
+    descripcion TEXT,
+    hallazgos TEXT,
+    porcentaje_avance NUMERIC(5,2)
+);
+
+
+
+-- ============================================================
+-- 6. VINCULACION
+-- ============================================================
+
+CREATE SCHEMA vinculacion;
+
+
+-- ORGANIZACIONES
+CREATE TABLE vinculacion.organizaciones (
+    id_organizacion BIGSERIAL PRIMARY KEY,
+    ruc VARCHAR(20),
+    nombre VARCHAR(200),
+    direccion TEXT,
+    contacto VARCHAR(150),
+    telefono VARCHAR(20),
+    correo VARCHAR(150),
+    estado BOOLEAN
+);
+
+
+-- PROYECTOS
+CREATE TABLE vinculacion.proyectos (
+    id_proyecto BIGSERIAL PRIMARY KEY,
+    id_organizacion BIGINT REFERENCES vinculacion.organizaciones(id_organizacion),
+    nombre VARCHAR(200),
+    descripcion TEXT,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(50)
+);
+
+
+-- CONVENIOS
+CREATE TABLE vinculacion.convenios (
+    id_convenio BIGSERIAL PRIMARY KEY,
+    id_organizacion BIGINT REFERENCES vinculacion.organizaciones(id_organizacion),
+    numero_convenio VARCHAR(50),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(50)
+);
+
+
+-- PARTICIPANTES
+CREATE TABLE vinculacion.participantes (
+    id_participante BIGSERIAL PRIMARY KEY,
+    id_proyecto BIGINT REFERENCES vinculacion.proyectos(id_proyecto),
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    fecha_ingreso DATE,
+    horas_asignadas INTEGER,
+    horas_cumplidas INTEGER,
+    estado VARCHAR(50)
+);
+
+
+-- ACTIVIDADES
+CREATE TABLE vinculacion.actividades (
+    id_actividad BIGSERIAL PRIMARY KEY,
+    id_proyecto BIGINT REFERENCES vinculacion.proyectos(id_proyecto),
+    nombre VARCHAR(200),
+    descripcion TEXT,
+    meta TEXT,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(50)
+);
+
+
+-- SEGUIMIENTO
+CREATE TABLE vinculacion.seguimiento (
+    id_seguimiento BIGSERIAL PRIMARY KEY,
+    id_proyecto BIGINT REFERENCES vinculacion.proyectos(id_proyecto),
+    id_participante BIGINT REFERENCES vinculacion.participantes(id_participante),
+    fecha TIMESTAMP,
+    descripcion TEXT,
+    hallazgos TEXT,
+    porcentaje_avance NUMERIC(5,2)
+);
+
+
+
+-- ============================================================
+-- 7. VACACIONES
+-- ============================================================
+
+CREATE SCHEMA vacaciones;
+
+
+-- SALDOS
+CREATE TABLE vacaciones.saldos (
+    id_saldo BIGSERIAL PRIMARY KEY,
+    id_empleado BIGINT REFERENCES core.empleados(id_empleado),
+    periodo VARCHAR(20),
+    dias_asignados NUMERIC(6,2),
+    dias_utilizados NUMERIC(6,2),
+    dias_disponibles NUMERIC(6,2)
+);
+
+
+-- SOLICITUDES
+CREATE TABLE vacaciones.solicitudes (
+    id_solicitud BIGSERIAL PRIMARY KEY,
+    id_empleado BIGINT REFERENCES core.empleados(id_empleado),
+    tipo VARCHAR(100),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    dias_solicitados NUMERIC(6,2),
+    horas_solicitadas NUMERIC(6,2),
+    motivo TEXT,
+    estado VARCHAR(50),
+    fecha_solicitud TIMESTAMP
+);
+
+
+-- FERIADOS
+CREATE TABLE vacaciones.feriados (
+    id_feriado BIGSERIAL PRIMARY KEY,
+    fecha DATE,
+    descripcion VARCHAR(200),
+    tipo VARCHAR(100),
+    estado BOOLEAN
+);
+
+
+-- APROBACIONES
+CREATE TABLE vacaciones.aprobaciones (
+    id_aprobacion BIGSERIAL PRIMARY KEY,
+    id_solicitud BIGINT REFERENCES vacaciones.solicitudes(id_solicitud),
+    id_aprobador BIGINT REFERENCES core.empleados(id_empleado),
+    fecha TIMESTAMP,
+    decision VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- PERMISOS
+CREATE TABLE vacaciones.permisos (
+    id_permiso BIGSERIAL PRIMARY KEY,
+    id_empleado BIGINT REFERENCES core.empleados(id_empleado),
+    fecha DATE,
+    hora_inicio TIME,
+    hora_fin TIME,
+    total_horas NUMERIC(5,2),
+    motivo TEXT,
+    estado VARCHAR(50)
+);
+
+
+
+-- ============================================================
+-- 8. GRADUACION
+-- ============================================================
+
+CREATE SCHEMA graduacion;
+
+
+-- EVENTOS
+CREATE TABLE graduacion.eventos (
+    id_evento BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(200),
+    fecha DATE,
+    hora TIME,
+    sede VARCHAR(150),
+    jornada VARCHAR(100),
+    aforo INTEGER,
+    estado VARCHAR(50)
+);
+
+
+-- BUTACAS
+CREATE TABLE graduacion.butacas (
+    id_butaca BIGSERIAL PRIMARY KEY,
+    id_evento BIGINT REFERENCES graduacion.eventos(id_evento),
+    fila VARCHAR(20),
+    numero INTEGER,
+    estado VARCHAR(50)
+);
+
+
+-- PASES
+CREATE TABLE graduacion.pases (
+    id_pase BIGSERIAL PRIMARY KEY,
+    id_evento BIGINT REFERENCES graduacion.eventos(id_evento),
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    id_butaca BIGINT REFERENCES graduacion.butacas(id_butaca),
+    tipo VARCHAR(100),
+    fecha_emision TIMESTAMP,
+    estado VARCHAR(50)
+);
+
+
+-- PAGOS
+CREATE TABLE graduacion.pagos (
+    id_pago BIGSERIAL PRIMARY KEY,
+    id_estudiante BIGINT REFERENCES core.estudiantes(id_estudiante),
+    id_evento BIGINT REFERENCES graduacion.eventos(id_evento),
+    monto NUMERIC(12,2),
+    fecha_pago DATE,
+    comprobante TEXT,
+    estado VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- QR
+CREATE TABLE graduacion.qr (
+    id_qr BIGSERIAL PRIMARY KEY,
+    id_pase BIGINT REFERENCES graduacion.pases(id_pase),
+    codigo VARCHAR(255),
+    fecha_generacion TIMESTAMP,
+    fecha_uso TIMESTAMP,
+    utilizado BOOLEAN
+);
+
+
+
+-- ============================================================
+-- 9. PORTAL
+-- ============================================================
+
+CREATE SCHEMA portal;
+
+
+-- SERVICIOS
+CREATE TABLE portal.servicios (
+    id_servicio BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(150),
+    descripcion TEXT,
+    url TEXT,
+    estado BOOLEAN
+);
+
+
+-- ACCESOS
+CREATE TABLE portal.accesos (
+    id_acceso BIGSERIAL PRIMARY KEY,
+    id_servicio BIGINT REFERENCES portal.servicios(id_servicio),
+    id_usuario BIGINT REFERENCES core.usuarios(id_usuario),
+    fecha_acceso TIMESTAMP,
+    estado VARCHAR(50)
+);
+
+
+-- INTEGRACIONES
+CREATE TABLE portal.integraciones (
+    id_integracion BIGSERIAL PRIMARY KEY,
+    id_servicio BIGINT REFERENCES portal.servicios(id_servicio),
+    nombre VARCHAR(150),
+    tipo VARCHAR(100),
+    endpoint TEXT,
+    descripcion TEXT,
+    estado BOOLEAN
+);
+
+
+
+-- ============================================================
+-- 10. PAGOS DOCENTES
+-- ============================================================
+
+CREATE SCHEMA pagos_docentes;
+
+
+-- MODULOS
+CREATE TABLE pagos_docentes.modulos (
+    id_modulo BIGSERIAL PRIMARY KEY,
+    id_docente BIGINT REFERENCES core.empleados(id_empleado),
+    nombre_modulo VARCHAR(200),
+    carrera VARCHAR(200),
+    periodo VARCHAR(100),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(50)
+);
+
+
+-- APROBACIONES
+CREATE TABLE pagos_docentes.aprobaciones (
+    id_aprobacion BIGSERIAL PRIMARY KEY,
+    id_modulo BIGINT REFERENCES pagos_docentes.modulos(id_modulo),
+    fecha_aprobacion TIMESTAMP,
+    origen VARCHAR(100),
+    referencia_correo TEXT,
+    estado VARCHAR(50)
+);
+
+
+-- PAGOS
+CREATE TABLE pagos_docentes.pagos (
+    id_pago BIGSERIAL PRIMARY KEY,
+    id_modulo BIGINT REFERENCES pagos_docentes.modulos(id_modulo),
+    monto NUMERIC(12,2),
+    fecha_pago DATE,
+    estado VARCHAR(50),
+    observacion TEXT
+);
+
+
+-- ALERTAS
+CREATE TABLE pagos_docentes.alertas (
+    id_alerta BIGSERIAL PRIMARY KEY,
+    id_modulo BIGINT REFERENCES pagos_docentes.modulos(id_modulo),
+    fecha_alerta TIMESTAMP,
+    tipo VARCHAR(100),
+    mensaje TEXT,
+    estado VARCHAR(50)
+);
+
+
+-- HISTORIAL
+CREATE TABLE pagos_docentes.historial (
+    id_historial BIGSERIAL PRIMARY KEY,
+    id_modulo BIGINT REFERENCES pagos_docentes.modulos(id_modulo),
+    estado_anterior VARCHAR(50),
+    estado_nuevo VARCHAR(50),
+    fecha TIMESTAMP,
+    observacion TEXT
+);
