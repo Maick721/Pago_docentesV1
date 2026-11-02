@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554 554" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">ITQ, donde puedes ser TÚ</title>
+  <rect width="554" height="554" fill="#E31E36"/>
+  <path d="M177 190h145v29H207v82h84v28h-84v29h-30z" fill="#050505"/>
+  <text x="235" y="314" fill="#FFFFFF" font-family="Segoe Script, Brush Script MT, cursive" font-size="142" font-style="italic" font-weight="700">itq</text>
+  <text x="276" y="375" fill="#FFFFFF" font-family="Segoe UI, sans-serif" font-size="17" text-anchor="middle">donde puedes</text>
+  <text x="276" y="407" fill="#050505" font-family="Segoe UI, sans-serif" font-size="24" font-weight="700" text-anchor="middle">ser TÚ!</text>
+</svg>

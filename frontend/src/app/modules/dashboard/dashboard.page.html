@@ -1,0 +1,759 @@
+<mat-toolbar class="topbar">
+  <div class="brand-lockup">
+    <img class="brand-logo" src="/itq-logo.svg" alt="Logo ITQ" />
+    <span class="brand-name">Conecta</span>
+  </div>
+  <span class="toolbar-divider" aria-hidden="true"></span>
+  <span class="workspace-label">Área financiera</span>
+  <span class="toolbar-spacer"></span>
+  <span class="user-label">Gestión de pagos docentes</span>
+</mat-toolbar>
+
+<main class="dashboard">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">ITQ CONECTA / ÁREA FINANCIERA</p>
+      <h1>Pagos a docentes</h1>
+      <p class="intro">
+        Registra módulos, controla aprobaciones y consulta el estado de pago por docente.
+      </p>
+    </div>
+    <div class="heading-controls">
+      <form class="actor-picker" [formGroup]="actorForm">
+        <label for="actor-id">ID de operador</label>
+        <input id="actor-id" type="number" min="1" formControlName="id_usuario" />
+        <small>Debe existir en core.usuarios</small>
+      </form>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="showCreateForm.set(!showCreateForm())"
+      >
+        {{ showCreateForm() ? 'Cancelar' : 'Registrar módulo' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="notice notice-error" role="alert">{{ error() }}</div>
+  }
+  @if (notice()) {
+    <div class="notice notice-success" role="status">{{ notice() }}</div>
+  }
+
+  <section class="summary-grid" aria-label="Resumen de pagos">
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <span class="summary-label">Registros</span>
+        <strong>{{ summary()?.total ?? 0 }}</strong>
+        <span class="summary-hint">{{ summary()?.listos ?? 0 }} listos para pago</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <span class="summary-label">Pendientes de pago</span>
+        <strong>{{ summary()?.por_pagar ?? 0 }}</strong>
+        <span class="summary-hint">{{ formatMoney(summary()?.monto_pendiente ?? 0) }}</span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="summary-card summary-warning">
+      <mat-card-content>
+        <span class="summary-label">Aprobados atrasados</span>
+        <strong>{{ summary()?.en_mora ?? 0 }}</strong>
+        <span class="summary-hint">
+          Superan {{ threshold() }} {{ thresholdUnit() === 'DIAS' ? 'días' : 'meses' }} desde aprobación
+        </span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="summary-card summary-warning">
+      <mat-card-content>
+        <span class="summary-label">Listos atrasados</span>
+        <strong>{{ summary()?.listos_atrasados ?? 0 }}</strong>
+        <span class="summary-hint">
+          Superan {{ threshold() }} {{ thresholdUnit() === 'DIAS' ? 'días' : 'meses' }} desde que quedaron listos
+        </span>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <span class="summary-label">Pagados</span>
+        <strong>{{ summary()?.pagados ?? 0 }}</strong>
+        <span class="summary-hint">{{ formatMoney(summary()?.monto_pagado ?? 0) }}</span>
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <section class="alerts-panel" aria-labelledby="alerts-heading">
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">SEGUIMIENTO</p>
+        <h2 id="alerts-heading">Alertas de pago</h2>
+      </div>
+      <span class="result-count">{{ alerts().length }} activas</span>
+    </div>
+    @if (alerts().length === 0) {
+      <p class="alerts-empty">No hay pagos atrasados que superen el umbral vigente.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Docente / módulo</th>
+              <th>Carrera / periodo</th>
+              <th>Días transcurridos</th>
+              <th>Referencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (alert of alerts(); track alert.id_modulo) {
+              <tr>
+                <td><strong>{{ alert.docente.nombre }}</strong><span class="secondary-text">{{ alert.nombre_modulo }}</span></td>
+                <td><strong>{{ alert.carrera }}</strong><span class="secondary-text">{{ alert.periodo }}</span></td>
+                <td><span class="alert-number">{{ alert.dias_transcurridos }} / {{ alert.umbral }} {{ alert.unidad === 'DIAS' ? 'días' : 'meses' }}</span></td>
+                <td>{{ formatDate(alert.fecha_referencia) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="settings-row" aria-label="Configuración de alertas">
+    <div>
+      <strong>Umbral de alertas</strong>
+      <p>Aplica a pagos aprobados sin pagar y pagos listos sin aprobar.</p>
+    </div>
+    <form class="threshold-form" [formGroup]="thresholdForm" (ngSubmit)="saveThreshold()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Umbral</mat-label>
+        <input matInput type="number" min="1" max="365" formControlName="valor" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Unidad</mat-label>
+        <mat-select formControlName="unidad">
+          <mat-option value="DIAS">Días</mat-option>
+          <mat-option value="MESES">Meses</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button
+        mat-stroked-button
+        type="submit"
+        [disabled]="thresholdForm.invalid || actorId() === null"
+      >
+        Guardar umbral
+      </button>
+    </form>
+  </section>
+
+  @if (showCreateForm()) {
+    <section class="form-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">NUEVO REGISTRO</p>
+          <h2>Registrar módulo docente</h2>
+        </div>
+      </div>
+      <form class="payment-form" [formGroup]="createForm" (ngSubmit)="createPayment()">
+        @if (lookups().docentes.length === 0 || lookups().carreras.length === 0) {
+          <p class="lookup-warning">
+            No hay docentes o carreras activas disponibles. Se necesitan referencias válidas en la base para crear un módulo.
+          </p>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label>Modelo de registro</mat-label>
+          <mat-select formControlName="modelo">
+            <mat-option value="carrera">Modelo Carrera</mat-option>
+            <mat-option value="validacion">Modelo Validación</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Condición</mat-label>
+          <input matInput formControlName="condicion" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Docente</mat-label>
+          <mat-select formControlName="id_docente">
+            @for (teacher of lookups().docentes; track teacher.id_docente) {
+              <mat-option [value]="teacher.id_docente">
+                {{ teacher.nombre }} · {{ teacher.cedula || teacher.correo || 'Sin contacto' }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Contrato</mat-label>
+          <input matInput formControlName="contrato" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Módulo</mat-label>
+          <input matInput formControlName="modulo" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Carrera</mat-label>
+          <mat-select formControlName="id_carrera">
+            @for (career of lookups().carreras; track career.id) {
+              <mat-option [value]="career.id">{{ career.nombre }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Periodo académico</mat-label>
+          <mat-select formControlName="id_periodo">
+            @for (period of lookups().periodos; track period.id) {
+              <mat-option [value]="period.id">{{ period.nombre }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Código EVA</mat-label>
+          <input matInput formControlName="codigo_eva" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Materia / paralelo</mat-label>
+          <input matInput formControlName="materia" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Programa / grupo</mat-label>
+          <input matInput formControlName="programa_grupo" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Paralelo</mat-label>
+          <input matInput formControlName="paralelo" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Número de módulo</mat-label>
+          <input matInput type="number" min="0" formControlName="numero_modulo" />
+        </mat-form-field>
+        @if (createForm.controls.modelo.value === 'carrera') {
+          <mat-form-field appearance="outline">
+            <mat-label>PAO</mat-label>
+            <input matInput formControlName="pao" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Nivel</mat-label>
+            <input matInput formControlName="nivel" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Turno</mat-label>
+            <input matInput formControlName="turno" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Días de clase</mat-label>
+            <input matInput type="number" min="0" formControlName="dias_clase" />
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline">
+            <mat-label>Módulo / núcleo / ciclo</mat-label>
+            <input matInput formControlName="nivel" />
+          </mat-form-field>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label>Jornada</mat-label>
+          <input matInput formControlName="jornada" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha de inicio</mat-label>
+          <input matInput type="date" formControlName="fecha_inicio" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha de fin</mat-label>
+          <input matInput type="date" formControlName="fecha_fin" />
+        </mat-form-field>
+        <div class="form-subsection">
+          <h3>Validación académica</h3>
+          <p>Registra el cumplimiento indicado en el modelo; los campos vacíos quedan sin validar.</p>
+          <div class="payment-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Aulas virtuales</mat-label>
+              <mat-select formControlName="aulas_virtuales">
+                <mat-option value="">Sin revisar</mat-option>
+                <mat-option value="CUMPLE">Cumple</mat-option>
+                <mat-option value="NO_CUMPLE">No cumple</mat-option>
+                <mat-option value="PENDIENTE">Pendiente</mat-option>
+              </mat-select>
+            </mat-form-field>
+            @if (createForm.controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>PEA</mat-label>
+                <mat-select formControlName="pea">
+                  <mat-option value="">Sin revisar</mat-option>
+                  <mat-option value="CUMPLE">Cumple</mat-option>
+                  <mat-option value="NO_CUMPLE">No cumple</mat-option>
+                  <mat-option value="PENDIENTE">Pendiente</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Informes finales</mat-label>
+                <mat-select formControlName="informes_finales">
+                  <mat-option value="">Sin revisar</mat-option>
+                  <mat-option value="CUMPLE">Cumple</mat-option>
+                  <mat-option value="NO_CUMPLE">No cumple</mat-option>
+                  <mat-option value="PENDIENTE">Pendiente</mat-option>
+                </mat-select>
+              </mat-form-field>
+            } @else {
+              <mat-form-field appearance="outline">
+                <mat-label>Guía / recursos</mat-label>
+                <mat-select formControlName="guia_recursos">
+                  <mat-option value="">Sin revisar</mat-option>
+                  <mat-option value="CUMPLE">Cumple</mat-option>
+                  <mat-option value="NO_CUMPLE">No cumple</mat-option>
+                  <mat-option value="PENDIENTE">Pendiente</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Registro de notas</mat-label>
+                <mat-select formControlName="registro_notas">
+                  <mat-option value="">Sin revisar</mat-option>
+                  <mat-option value="CUMPLE">Cumple</mat-option>
+                  <mat-option value="NO_CUMPLE">No cumple</mat-option>
+                  <mat-option value="PENDIENTE">Pendiente</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Portafolio SGA</mat-label>
+                <mat-select formControlName="portafolio_sga">
+                  <mat-option value="">Sin revisar</mat-option>
+                  <mat-option value="CUMPLE">Cumple</mat-option>
+                  <mat-option value="NO_CUMPLE">No cumple</mat-option>
+                  <mat-option value="PENDIENTE">Pendiente</mat-option>
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+        </div>
+        <div class="form-subsection">
+          <h3>Valores del pago</h3>
+          <p>
+            Los valores se guardan como los confirmes. No se aplican fórmulas automáticas mientras
+            no se validen con Financiero.
+          </p>
+          <div class="payment-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Horas proyectadas</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="horas_proyectadas" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Horas reales</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="horas_reales" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Valor hora</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="valor_hora" />
+            </mat-form-field>
+            @if (createForm.controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Valor a facturar</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="valor_facturar" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Descuento (%)</mat-label>
+                <input matInput type="number" min="0" max="100" step="0.01" formControlName="descuento_porcentaje" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Descuento aplicado</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="descuento_aplicado" />
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline">
+              <mat-label>Retención</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="retencion" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Criterio de aprobación</mat-label>
+              <input matInput formControlName="criterio" />
+            </mat-form-field>
+            @if (createForm.controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Criterio TTHH</mat-label>
+                <input matInput formControlName="criterio_tthh" />
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline">
+              <mat-label>Número de factura</mat-label>
+              <input matInput formControlName="numero_factura" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de factura</mat-label>
+              <input matInput type="date" formControlName="fecha_factura" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="form-subsection">
+          <h3>Seguimiento y aprobación</h3>
+          <div class="payment-form">
+            @if (createForm.controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha de registro de información</mat-label>
+                <input matInput type="date" formControlName="fecha_registro_informacion" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Entrega al coordinador</mat-label>
+                <input matInput type="date" formControlName="fecha_entrega_coordinador" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Entrega a Financiero</mat-label>
+                <input matInput type="date" formControlName="fecha_entrega_financiero" />
+              </mat-form-field>
+            } @else {
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha de actualización</mat-label>
+                <input matInput type="date" formControlName="fecha_actualizacion" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Aprobación para pago</mat-label>
+                <input matInput type="date" formControlName="fecha_aprobacion_pago" />
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de correcciones</mat-label>
+              <input matInput type="date" formControlName="fecha_correcciones" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Primer seguimiento</mat-label>
+              <input matInput type="date" formControlName="fecha_seguimiento" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Segundo seguimiento</mat-label>
+              <input matInput type="date" formControlName="fecha_segundo_seguimiento" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Observaciones</mat-label>
+              <textarea matInput rows="2" formControlName="observaciones"></textarea>
+            </mat-form-field>
+            @if (createForm.controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Seguimiento / prioridad</mat-label>
+                <input matInput formControlName="seguimiento" />
+              </mat-form-field>
+            }
+          </div>
+        </div>
+        <div class="form-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="createForm.invalid || saving() || actorId() === null"
+          >
+            {{ saving() ? 'Guardando...' : 'Crear registro' }}
+          </button>
+          <button mat-button type="button" (click)="showCreateForm.set(false)">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (actionPayment(); as selectedPayment) {
+    <section class="action-panel">
+      <div>
+        <p class="eyebrow">
+          {{
+            actionType() === 'ready'
+              ? 'MARCAR LISTO PARA PAGO'
+              : actionType() === 'approval'
+                ? 'REGISTRAR APROBACIÓN MANUAL'
+                : 'CONFIRMAR PAGO'
+          }}
+        </p>
+        <h2>{{ selectedPayment.docente }} · {{ selectedPayment.modulo }}</h2>
+        <p>
+          {{
+            actionType() === 'ready'
+              ? 'Ingresa el monto para crear el registro de pago pendiente.'
+              : actionType() === 'approval'
+                ? 'La aprobación automática por correo aún no está conectada.'
+                : 'Confirma el pago y registra los datos del comprobante.'
+          }}
+        </p>
+      </div>
+      <form class="action-form" [formGroup]="actionForm" (ngSubmit)="confirmAction()">
+        @if (actionType() === 'ready') {
+          <mat-form-field appearance="outline">
+            <mat-label>Monto a pagar (USD)</mat-label>
+            <input matInput type="number" min="0.01" step="0.01" formControlName="monto" />
+          </mat-form-field>
+        }
+        @if (actionType() === 'approval' || actionType() === 'paid') {
+          <mat-form-field appearance="outline">
+            <mat-label>Observación</mat-label>
+            <input matInput formControlName="observacion" />
+          </mat-form-field>
+        }
+        @if (actionType() === 'paid') {
+          <mat-form-field appearance="outline">
+            <mat-label>Número de factura</mat-label>
+            <input matInput formControlName="numero_factura" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Número de comprobante</mat-label>
+            <input matInput formControlName="numero_comprobante" />
+          </mat-form-field>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="actorId() === null">
+          Confirmar
+        </button>
+        <button mat-button type="button" (click)="cancelAction()">Cancelar</button>
+      </form>
+    </section>
+  }
+
+  <section class="payments-section" aria-labelledby="payments-heading">
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">BANDEJA FINANCIERA</p>
+        <h2 id="payments-heading">Registros de pago</h2>
+      </div>
+      <span class="result-count">{{ total() }} registros</span>
+    </div>
+
+    <form class="filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Buscar docente o módulo</mat-label>
+        <input matInput formControlName="q" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Periodo</mat-label>
+        <input matInput formControlName="periodo" placeholder="2026-1" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Mes de inicio</mat-label>
+        <mat-select formControlName="mes">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="1">Enero</mat-option>
+          <mat-option value="2">Febrero</mat-option>
+          <mat-option value="3">Marzo</mat-option>
+          <mat-option value="4">Abril</mat-option>
+          <mat-option value="5">Mayo</mat-option>
+          <mat-option value="6">Junio</mat-option>
+          <mat-option value="7">Julio</mat-option>
+          <mat-option value="8">Agosto</mat-option>
+          <mat-option value="9">Septiembre</mat-option>
+          <mat-option value="10">Octubre</mat-option>
+          <mat-option value="11">Noviembre</mat-option>
+          <mat-option value="12">Diciembre</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Carrera</mat-label>
+        <input matInput formControlName="carrera" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="borrador">Borrador</mat-option>
+          <mat-option value="listo">Listo para pago</mat-option>
+          <mat-option value="aprobado">Por pagar</mat-option>
+          <mat-option value="pagado">Pagado</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="34" />
+        <span>Cargando registros...</span>
+      </div>
+    } @else if (payments().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon" aria-hidden="true">$</span>
+        <h3>No hay registros para mostrar</h3>
+        <p>Registra un módulo docente o ajusta los filtros de búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Docente / módulo</th>
+              <th>Carrera / periodo</th>
+              <th>Fechas del módulo</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th class="actions-heading">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (payment of payments(); track payment.id) {
+              <tr [class.overdue-row]="payment.en_mora || payment.listo_atrasado">
+                <td>
+                  <strong>{{ payment.docente }}</strong>
+                  <span class="secondary-text">{{ payment.modulo }}</span>
+                  <span class="secondary-text">
+                    {{ payment.modelo === 'carrera' ? 'Modelo Carrera' : 'Modelo Validación' }}
+                    @if (payment.datos_modelo?.codigo_eva) {
+                      · EVA {{ payment.datos_modelo?.codigo_eva }}
+                    }
+                  </span>
+                  @if (payment.datos_modelo?.materia) {
+                    <span class="secondary-text">{{ payment.datos_modelo?.materia }}</span>
+                  }
+                </td>
+                <td>
+                  <strong>{{ payment.carrera }}</strong>
+                  <span class="secondary-text">{{ payment.periodo_academico }}</span>
+                </td>
+                <td>{{ payment.fecha_inicio }} — {{ payment.fecha_fin }}</td>
+                <td>{{ formatMoney(payment.monto) }}</td>
+                <td>
+                  <span class="status-chip" [class]="'status-chip status-' + payment.estado">
+                    {{
+                      payment.en_mora
+                        ? 'Aprobado atrasado'
+                        : payment.listo_atrasado
+                          ? 'Listo atrasado'
+                          : statusLabel(payment.estado)
+                    }}
+                  </span>
+                  @if (payment.dias_desde_aprobacion !== null && payment.estado === 'aprobado') {
+                    <span class="secondary-text">{{ payment.dias_desde_aprobacion }} días desde aprobación</span>
+                  }
+                  @if (payment.dias_desde_listo !== null && payment.estado === 'listo') {
+                    <span class="secondary-text">{{ payment.dias_desde_listo }} días desde que quedó listo</span>
+                  }
+                </td>
+                <td>
+                  <div class="row-actions">
+                    @if (payment.estado === 'borrador') {
+                      <button mat-button type="button" (click)="markReady(payment)">Marcar listo</button>
+                    } @else if (payment.estado === 'listo') {
+                      <button mat-button type="button" (click)="beginAction(payment, 'approval')">
+                        Registrar aprobación
+                      </button>
+                    } @else if (payment.estado === 'aprobado') {
+                      <button mat-button type="button" (click)="beginAction(payment, 'paid')">
+                        Marcar pagado
+                      </button>
+                    }
+                    <button mat-button type="button" (click)="toggleDetails(payment)">
+                      {{ expandedDetails() === payment.id ? 'Ocultar detalle' : 'Ver detalle' }}
+                    </button>
+                    <button mat-button type="button" (click)="toggleHistory(payment)">
+                      {{ expandedHistory() === payment.id ? 'Ocultar historial' : 'Historial' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              @if (expandedHistory() === payment.id) {
+                <tr class="history-row">
+                  <td colspan="6">
+                    <strong>Historial de cambios</strong>
+                    @if (history().length === 0) {
+                      <p>No hay eventos de historial para este registro.</p>
+                    } @else {
+                      <ol class="history-list">
+                        @for (record of history(); track record.id) {
+                          <li>
+                            <span>{{ record.detalle }}</span>
+                            <small>{{ record.actor }} · {{ formatDate(record.creado_en) }}</small>
+                          </li>
+                        }
+                      </ol>
+                    }
+                  </td>
+                </tr>
+              }
+              @if (expandedDetails() === payment.id && payment.datos_modelo; as details) {
+                <tr class="history-row">
+                  <td colspan="6">
+                    <strong>
+                      Detalle del modelo {{ payment.modelo === 'carrera' ? 'Carrera' : 'Validación' }}
+                    </strong>
+                    <div class="payment-details">
+                      @if (details.contrato) { <span><b>Contrato:</b> {{ details.contrato }}</span> }
+                      @if (details.condicion) { <span><b>Condición:</b> {{ details.condicion }}</span> }
+                      @if (details.codigo_eva) { <span><b>Código EVA:</b> {{ details.codigo_eva }}</span> }
+                      @if (details.materia) { <span><b>Materia:</b> {{ details.materia }}</span> }
+                      @if (details.programa_grupo) { <span><b>Programa / grupo:</b> {{ details.programa_grupo }}</span> }
+                      @if (details.turno) { <span><b>Turno:</b> {{ details.turno }}</span> }
+                      @if (details.jornada) { <span><b>Jornada:</b> {{ details.jornada }}</span> }
+                      @if (details.horas_proyectadas !== null && details.horas_proyectadas !== undefined) {
+                        <span><b>Horas proyectadas:</b> {{ details.horas_proyectadas }}</span>
+                      }
+                      @if (details.horas_reales !== null && details.horas_reales !== undefined) {
+                        <span><b>Horas reales:</b> {{ details.horas_reales }}</span>
+                      }
+                      @if (details.valor_hora !== null && details.valor_hora !== undefined) {
+                        <span><b>Valor hora:</b> {{ formatMoney(details.valor_hora) }}</span>
+                      }
+                      @if (details.retencion !== null && details.retencion !== undefined) {
+                        <span><b>Retención:</b> {{ formatMoney(details.retencion) }}</span>
+                      }
+                      @if (details.numero_factura) { <span><b>Factura:</b> {{ details.numero_factura }}</span> }
+                      @if (details.aulas_virtuales) { <span><b>Aulas virtuales:</b> {{ details.aulas_virtuales }}</span> }
+                      @if (details.modelo === 'carrera') {
+                        @if (details.pea) { <span><b>PEA:</b> {{ details.pea }}</span> }
+                        @if (details.informes_finales) { <span><b>Informes:</b> {{ details.informes_finales }}</span> }
+                        @if (details.pao) { <span><b>PAO:</b> {{ details.pao }}</span> }
+                        @if (details.dias_clase !== undefined && details.dias_clase !== null) {
+                          <span><b>Días de clase:</b> {{ details.dias_clase }}</span>
+                        }
+                        @if (details.valor_facturar !== null && details.valor_facturar !== undefined) {
+                          <span><b>Valor a facturar:</b> {{ formatMoney(details.valor_facturar) }}</span>
+                        }
+                        @if (details.descuento_porcentaje !== null && details.descuento_porcentaje !== undefined) {
+                          <span><b>Descuento:</b> {{ details.descuento_porcentaje }}%</span>
+                        }
+                        @if (details.descuento_aplicado !== null && details.descuento_aplicado !== undefined) {
+                          <span><b>Descuento aplicado:</b> {{ formatMoney(details.descuento_aplicado) }}</span>
+                        }
+                        @if (details.criterio_tthh) { <span><b>Criterio TTHH:</b> {{ details.criterio_tthh }}</span> }
+                        @if (details.fecha_entrega_financiero) {
+                          <span><b>Entrega a Financiero:</b> {{ details.fecha_entrega_financiero }}</span>
+                        }
+                      } @else {
+                        @if (details.modulo_nucleo_ciclo) {
+                          <span><b>Módulo / núcleo / ciclo:</b> {{ details.modulo_nucleo_ciclo }}</span>
+                        }
+                        @if (details.guia_recursos) { <span><b>Guía / recursos:</b> {{ details.guia_recursos }}</span> }
+                        @if (details.registro_notas) { <span><b>Notas:</b> {{ details.registro_notas }}</span> }
+                        @if (details.portafolio_sga) { <span><b>Portafolio SGA:</b> {{ details.portafolio_sga }}</span> }
+                        @if (details.fecha_aprobacion_pago) {
+                          <span><b>Aprobación para pago:</b> {{ details.fecha_aprobacion_pago }}</span>
+                        }
+                      }
+                      @if (details.criterio) { <span><b>Criterio:</b> {{ details.criterio }}</span> }
+                      @if (details.observaciones) {
+                        <span class="details-wide"><b>Observaciones:</b> {{ details.observaciones }}</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="Paginación de registros">
+        <button
+          mat-button
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="changePage(page() - 1)"
+        >
+          Anterior
+        </button>
+        <span>Página {{ page() }} de {{ pageCount() }}</span>
+        <button
+          mat-button
+          type="button"
+          [disabled]="page() >= pageCount()"
+          (click)="changePage(page() + 1)"
+        >
+          Siguiente
+        </button>
+      </nav>
+    }
+  </section>
+
+  <footer class="integration-note">
+    <strong>Integración de correo pendiente de configuración</strong>
+    <span>
+      Las aprobaciones se registran manualmente por ahora. Al definirse el proveedor institucional,
+      se conectará la captura automática y el registro de fallas de lectura.
+    </span>
+  </footer>
+</main>

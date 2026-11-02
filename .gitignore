@@ -18,3 +18,26 @@ coverage.xml
 .ruff_cache/
 .pyre/
 .pytype/
+
+# Dependencias y compilaciones de Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Entornos y configuración local
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Archivos locales de IDE y sistema
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/tasks.json
+Thumbs.db
+Desktop.ini
+
+# Archivos de datos locales
+*.log

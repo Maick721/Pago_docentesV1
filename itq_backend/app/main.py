@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.modules.pagos_docentes.router import router as pagos_docentes_router
 from app.routers import auth, core, graduacion
 
 
@@ -60,6 +61,7 @@ API_V1_PREFIX = "/api/v1"
 app.include_router(auth.router, prefix=API_V1_PREFIX)
 app.include_router(core.router, prefix=API_V1_PREFIX)
 app.include_router(graduacion.router, prefix=API_V1_PREFIX)
+app.include_router(pagos_docentes_router, prefix=API_V1_PREFIX)
 
 
 # ─── Health check ─────────────────────────────────────────────────────────────

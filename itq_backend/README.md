@@ -10,26 +10,32 @@ Para consultar la descripción detallada de cada carpeta, archivo y flujo de tra
 ## 🚀 Inicio Rápido
 
 ### 1. Requisitos Previos
-* Python 3.12+
+* Python 3.13 (mínimo; validado localmente con 3.13.14)
 * PostgreSQL 16+
 
 ### 2. Instalación de Dependencias
 ```bash
-python -m venv venv
-venv\Scripts\activate   # En Windows
-pip install -r requirements.txt
+uv python install 3.13
+uv venv --python 3.13
+.venv\Scripts\activate
+uv pip install -r requirements.txt
 ```
 
 ### 3. Configuración de Base de Datos
-Copia el archivo de variables de entorno y ajusta las credenciales:
+Configura `DATABASE_URL` en `.env` para que apunte a la misma instancia y base
+que contiene el esquema institucional:
 ```bash
-# Editar archivo .env con la URL de tu base de datos:
-# DATABASE_URL=postgresql+asyncpg://usuario:contraseña@localhost:5432/itq_db
+# DATABASE_URL=postgresql+asyncpg://usuario:contraseña@host:puerto/base
 ```
+El servicio PostgreSQL de `compose.yaml` publica el puerto `5433` y usa por
+defecto la base `itqconecta`; verifica que `DATABASE_URL` corresponda a esa
+instancia si decides usar Compose.
 
-Inicializa los esquemas y tablas ejecutando el script DDL:
+Aplica primero el DDL institucional oficial que define el esquema
+`pagos_docentes` y sus dependencias en `core`. Después, ejecuta esta migración
+aditiva para conservar los campos Carrera/Validación que captura la interfaz:
 ```bash
-psql -U postgres -d itq_db -f scripts/create_schemas.sql
+psql -U postgres -d <base> -f scripts/pagos_docentes.sql
 ```
 
 Verifica la conexión y esquemas:
@@ -48,3 +54,6 @@ uvicorn app.main:app --reload
 ```
 * **Swagger UI:** [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
 * **ReDoc:** [http://localhost:8000/api/redoc](http://localhost:8000/api/redoc)
+
+Las rutas de pagos docentes están bajo `/api/v1/finance/payments` y requieren
+un token Bearer válido del endpoint de autenticación.
