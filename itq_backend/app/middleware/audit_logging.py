@@ -1,12 +1,12 @@
 """
-app/core/audit.py
+app/middleware/audit_logging.py
 Servicio de auditoría transversal: registra acciones de usuario en core.auditoria.
 """
 from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.core import Auditoria
+from app.modules.core.models.core import Auditoria
 
 
 async def registrar_auditoria(

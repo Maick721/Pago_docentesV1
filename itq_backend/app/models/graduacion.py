@@ -141,4 +141,4 @@ class QR(Base):
 
 
 # Importación necesaria para las relaciones forward-reference
-from app.models.core import Persona, Usuario  # noqa: E402
+from app.modules.core.models.core import Persona, Usuario  # noqa: E402

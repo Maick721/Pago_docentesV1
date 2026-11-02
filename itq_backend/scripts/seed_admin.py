@@ -17,7 +17,7 @@ from sqlalchemy import select
 
 from app.core.database import AsyncSessionLocal
 from app.core.security import hash_password
-from app.models.core import Rol, Usuario, UsuarioRol
+from app.modules.core.models.core import Rol, Usuario, UsuarioRol
 
 
 async def seed_admin():

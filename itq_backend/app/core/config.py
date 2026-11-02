@@ -22,5 +22,9 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     APP_DESCRIPTION: str = "Backend para el Sistema ITQ Conecta - Módulo Core y Graduación"
 
+    # Celery (tareas asíncronas: notificaciones, correos, parsing de PDFs)
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+
 
 settings = Settings()

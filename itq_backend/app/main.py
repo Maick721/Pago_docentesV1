@@ -12,8 +12,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.modules.pagos_docentes.router import router as pagos_docentes_router
-from app.routers import auth, core, graduacion
+from app.core.celery import celery_app  # noqa: F401  (se inicializa con la app)
+from app.middleware.exceptions import register_exception_handlers
+from app.modules.core.routers import core as core_router
+from app.modules.documentos.routers import documentos as documentos_router
+from app.routers import auth, graduacion
 
 
 # ─── Lifespan (startup/shutdown) ─────────────────────────────────────────────
@@ -59,9 +62,12 @@ app.add_middleware(
 API_V1_PREFIX = "/api/v1"
 
 app.include_router(auth.router, prefix=API_V1_PREFIX)
-app.include_router(core.router, prefix=API_V1_PREFIX)
+app.include_router(core_router.router, prefix=API_V1_PREFIX)
+app.include_router(documentos_router.router, prefix=API_V1_PREFIX)
 app.include_router(graduacion.router, prefix=API_V1_PREFIX)
-app.include_router(pagos_docentes_router, prefix=API_V1_PREFIX)
+
+# ─── Manejadores de excepciones globales ───────────────────────────────────────
+register_exception_handlers(app)
 
 
 # ─── Health check ─────────────────────────────────────────────────────────────

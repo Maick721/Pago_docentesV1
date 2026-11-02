@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.audit import registrar_auditoria
+from app.middleware.audit_logging import registrar_auditoria
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import (
@@ -19,7 +19,7 @@ from app.core.security import (
     get_current_user,
     verify_password,
 )
-from app.models.core import Usuario
+from app.modules.core.models.core import Usuario
 from app.schemas.auth import LoginRequest, TokenResponse, UsuarioMeResponse
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])

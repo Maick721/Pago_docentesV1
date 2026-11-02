@@ -108,7 +108,7 @@ async def get_current_user(
         HTTPException 403 si el usuario está inactivo.
     """
     # Importación local para evitar circular imports
-    from app.models.core import Usuario
+    from app.modules.core.models.core import Usuario
 
     payload = decode_access_token(credentials.credentials)
     user_id: str = payload.get("sub")

@@ -41,18 +41,8 @@ itq_backend/
 │       ├── core.py               # Endpoints institucionales (/core/personas, /core/usuarios)
 │       └── graduacion.py         # Endpoints de ceremonia (/graduacion/eventos, validar-qr)
 │
-├── modules/
-│   └── pagos_docentes/
-│       ├── enums.py              # Estados y tipos de pago/alerta
-│       ├── models.py             # Modelos ORM del esquema pagos_docentes
-│       ├── referencias_docentes.py # Referencias a core.empleados y core.personas
-│       ├── router.py             # Endpoints protegidos por JWT
-│       ├── schemas.py            # Validación de solicitudes y respuestas
-│       └── services/             # Pagos, flujo, alertas, reportes y configuración
-│
 └── scripts/                      # Scripts de utilidad, mantenimiento y base de datos
     ├── create_schemas.sql        # Script DDL SQL para crear esquemas, tablas e índices
-    ├── pagos_docentes.sql        # Esquema de pagos (requiere core institucional)
     ├── check_db.py               # Script para verificar conectividad con PostgreSQL
     └── seed_admin.py             # Script de siembra para el superusuario administrador
 ```
@@ -149,15 +139,6 @@ Implementa los endpoints HTTP consumidos por el cliente (Angular / móvil):
   * `GET /eventos`: Consulta de eventos activos.
   * `POST /validar-qr`: Validación en tiempo real del código QR escaneado en el acceso.
   * `POST /validar-cedula`: Alternativa manual para validar ingreso por número de cédula.
-* **`app/modules/pagos_docentes/router.py`** (`/api/v1/finance/payments`):
-  * Expone consulta, creación, cambios de estado, alertas, historial y configuración.
-  * Las operaciones de escritura usan `app.core.security.get_current_user`; el
-    actor se obtiene de `Usuario.id_usuario`, no de un parámetro del cliente.
-
-El módulo vive en `app/modules/pagos_docentes/`. Sus reglas están en `services/`;
-los datos personales reutilizan `core.Persona` y los datos de empleados se
-consultan mediante una referencia local a `core.empleados`. `app/main.py`
-registra su router bajo el prefijo común `/api/v1`.
 
 ---
 
@@ -165,7 +146,6 @@ registra su router bajo el prefijo común `/api/v1`.
 Scripts auxiliares para administración y despliegue del backend:
 
 * **`create_schemas.sql`**: Script DDL que ejecuta la creación de los esquemas PostgreSQL (`core`, `docs`, `graduacion`), tablas, llaves foráneas, índices, roles base y usuario admin inicial.
-* **`pagos_docentes.sql`**: Crea las tablas del módulo de pagos docentes. Requiere que `core.empleados` y `core.usuarios` ya existan.
 * **`check_db.py`**: Diagnóstico rápido de red y PostgreSQL que verifica la conectividad y la presencia de los esquemas requeridos.
 * **`seed_admin.py`**: Permite sembrar o restablecer la cuenta de usuario administrador (`admin`) asignándole el rol `administrador` con contraseña cifrada.
 

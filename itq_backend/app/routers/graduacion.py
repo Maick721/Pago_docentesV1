@@ -13,10 +13,10 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.audit import registrar_auditoria
+from app.middleware.audit_logging import registrar_auditoria
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.core import Persona, Usuario
+from app.modules.core.models.core import Persona, Usuario
 from app.models.graduacion import Butaca, Evento, Pase, QR
 from app.schemas.graduacion import (
     ButacaOut,

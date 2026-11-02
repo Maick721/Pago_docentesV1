@@ -68,6 +68,113 @@ CREATE TABLE IF NOT EXISTS core.auditoria (
 CREATE INDEX IF NOT EXISTS idx_auditoria_usuario ON core.auditoria(id_usuario);
 CREATE INDEX IF NOT EXISTS idx_auditoria_fecha   ON core.auditoria(fecha_hora DESC);
 
+-- ─── Tablas adicionales del core institucional ───────────────────────────────
+
+-- PERMISOS
+CREATE TABLE IF NOT EXISTS core.permisos (
+    id_permiso   BIGSERIAL PRIMARY KEY,
+    nombre       VARCHAR(100),
+    descripcion  TEXT,
+    accion       VARCHAR(100),
+    estado       BOOLEAN
+);
+
+-- MODULOS
+CREATE TABLE IF NOT EXISTS core.modulos (
+    id_modulo    BIGSERIAL PRIMARY KEY,
+    nombre       VARCHAR(100),
+    descripcion  TEXT,
+    estado       BOOLEAN
+);
+
+-- DEPARTAMENTOS / UNIDADES
+CREATE TABLE IF NOT EXISTS core.unidades (
+    id_unidad    BIGSERIAL PRIMARY KEY,
+    nombre       VARCHAR(150),
+    descripcion  TEXT,
+    estado       BOOLEAN
+);
+
+-- ESTUDIANTES
+CREATE TABLE IF NOT EXISTS core.estudiantes (
+    id_estudiante    BIGSERIAL PRIMARY KEY,
+    id_persona       BIGINT REFERENCES core.personas(id_persona),
+    codigo_estudiante VARCHAR(50),
+    estado           BOOLEAN
+);
+
+-- EMPLEADOS
+CREATE TABLE IF NOT EXISTS core.empleados (
+    id_empleado    BIGSERIAL PRIMARY KEY,
+    id_persona     BIGINT REFERENCES core.personas(id_persona),
+    id_unidad      BIGINT REFERENCES core.unidades(id_unidad),
+    codigo_empleado VARCHAR(50),
+    cargo          VARCHAR(100),
+    fecha_ingreso  DATE,
+    estado         BOOLEAN
+);
+
+-- CATALOGOS ACADEMICOS
+CREATE TABLE IF NOT EXISTS core.catalogos_academicos (
+    id_catalogo  BIGSERIAL PRIMARY KEY,
+    tipo         VARCHAR(100),
+    codigo       VARCHAR(50),
+    nombre       VARCHAR(150),
+    descripcion  TEXT,
+    estado       BOOLEAN
+);
+
+-- ACADEMIC PROGRAMS
+CREATE TABLE IF NOT EXISTS core.academic_programs (
+    id_program   BIGSERIAL PRIMARY KEY,
+    codigo       VARCHAR(50) NOT NULL UNIQUE,
+    nombre       VARCHAR(200) NOT NULL,
+    descripcion  TEXT,
+    estado       BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS idx_academic_programs_codigo ON core.academic_programs(codigo);
+
+-- ACADEMIC PERIODS
+CREATE TABLE IF NOT EXISTS core.academic_periods (
+    id_period    BIGSERIAL PRIMARY KEY,
+    codigo       VARCHAR(50) NOT NULL UNIQUE,
+    nombre       VARCHAR(100) NOT NULL,
+    fecha_inicio TIMESTAMP,
+    fecha_fin    TIMESTAMP,
+    estado       BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS idx_academic_periods_codigo ON core.academic_periods(codigo);
+
+-- CAMPUS
+CREATE TABLE IF NOT EXISTS core.campus (
+    id_campus    BIGSERIAL PRIMARY KEY,
+    codigo       VARCHAR(50) NOT NULL UNIQUE,
+    nombre       VARCHAR(200) NOT NULL,
+    direccion    TEXT,
+    estado       BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS idx_campus_codigo ON core.campus(codigo);
+
+-- ACADEMIC MODALITIES
+CREATE TABLE IF NOT EXISTS core.academic_modalities (
+    id_modality  BIGSERIAL PRIMARY KEY,
+    codigo       VARCHAR(50) NOT NULL UNIQUE,
+    nombre       VARCHAR(150) NOT NULL,
+    descripcion  TEXT,
+    estado       BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS idx_academic_modalities_codigo ON core.academic_modalities(codigo);
+
+-- ACADEMIC PARALLELS
+CREATE TABLE IF NOT EXISTS core.academic_parallels (
+    id_parallel  BIGSERIAL PRIMARY KEY,
+    codigo       VARCHAR(50) NOT NULL UNIQUE,
+    nombre       VARCHAR(100) NOT NULL,
+    descripcion  TEXT,
+    estado       BOOLEAN NOT NULL DEFAULT TRUE
+);
+CREATE INDEX IF NOT EXISTS idx_academic_parallels_codigo ON core.academic_parallels(codigo);
+
 -- ─── Esquema DOCS ────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS docs.file_assets (

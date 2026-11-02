@@ -1,1 +1,1 @@
-"""Módulos de negocio de ITQ Conecta."""
+# modules package

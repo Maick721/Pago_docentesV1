@@ -1,5 +1,5 @@
 """
-app/models/documentos.py
+app/modules/documentos/models/documentos.py
 Modelos SQLAlchemy para gestión documental transversal:
   FILE_ASSET, DOCUMENT, DOCUMENT_VERSION, DOCUMENT_REVIEW
 Estos modelos son utilizados por múltiples módulos del sistema.
