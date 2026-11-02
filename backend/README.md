@@ -1,6 +1,87 @@
 # ITQ Conecta Backend: Estado de trabajo
 
-Última actualización: 2026-10-27
+Última actualización: 2026-11-02
+
+## Estado de Core y autenticación (2 de noviembre de 2026)
+
+### Cambios realizados
+
+Se adaptaron los modelos de `core.personas`, `usuarios`, `roles`,
+`usuario_rol`, `auditoria`, `permisos`, `modulos`, `unidades`, `estudiantes`,
+`empleados` y `catalogos_academicos` a los tipos y nulabilidad observados en la
+base PostgreSQL existente. Entre los ajustes están:
+
+- Estados como booleanos (incluidos los estados de usuario, rol y asignación
+  usuario-rol), en lugar de cadenas como `"activo"`.
+- Columnas opcionales reflejadas como nullable en los modelos y en los DTO de
+  respuesta de persona, usuario y asignaciones de roles.
+- `Empleado.fecha_ingreso` tratado como `date`.
+- Longitudes de campos y fechas sin zona horaria alineadas con el esquema
+  inspeccionado.
+- Login y dependencia JWT consideran activa una cuenta solo si `estado` es
+  `True`; los roles del login también deben estar activos. El login rechaza
+  usuarios sin hash de contraseña sin intentar verificar un valor nulo.
+- El filtro `GET /api/v1/core/usuarios?estado=activo|inactivo` traduce esos
+  valores de API a booleanos y devuelve 422 para otros valores.
+
+### Verificaciones realizadas
+
+- Python importó `app.main`, SQLAlchemy configuró los mappers y OpenAPI generó
+  51 rutas.
+- Se ejecutaron consultas de solo lectura (`SELECT ... LIMIT 0`) sobre los 11
+  modelos Core indicados y filtros booleanos de usuario contra PostgreSQL.
+- Se validó que los DTO aceptan los valores nulos comprobados.
+- `compileall` y la comprobación de sintaxis de los seis archivos Python
+  modificados terminaron sin errores.
+- No se ejecutaron `INSERT`, `UPDATE`, `DELETE`, migraciones ni pruebas de
+  escritura contra la base.
+
+Estas pruebas verifican carga, mapeo y compatibilidad de las consultas
+probadas; **no equivalen a una prueba completa de API ni de autenticación**.
+No se ejecutó un login real ni una suite de pruebas automatizadas de Core.
+
+### Entorno y versiones observadas
+
+Versiones obtenidas del entorno virtual del repositorio en esta máquina
+(versiones instaladas, no todas son pins exactos de `requirements.txt`):
+
+| Componente | Versión observada |
+|---|---:|
+| Python | 3.12.13 |
+| FastAPI | 0.156.4 |
+| SQLAlchemy | 2.0.55 |
+| Pydantic | 2.14.1 |
+| asyncpg | 0.32.0 |
+| python-jose | 3.5.0 |
+| Passlib | 1.7.4 |
+| bcrypt | 4.0.1 |
+| PostgreSQL local | 18.6 |
+| Git for Windows | 2.54.0.windows.1 |
+
+Herramientas empleadas: entorno virtual `.venv` de la raíz, PowerShell,
+SQLAlchemy/asyncpg para las consultas de solo lectura, compilación Python,
+validación de sintaxis Pylance y generación OpenAPI de FastAPI. Pylance reportó
+imports no resueltos en el intérprete seleccionado por VS Code; la ejecución
+y las pruebas anteriores se hicieron explícitamente con
+`..\\.venv\\Scripts\\python.exe` desde `backend/`. Selecciona ese intérprete en
+VS Code para que el análisis del editor use las mismas dependencias.
+
+### Pendiente antes de considerar terminado Core/auth
+
+1. Configurar una `SECRET_KEY` segura en `backend/.env` (no compartirla ni
+   subirla a Git) y probar login, respuesta `/auth/me`, expiración y rechazo de
+   cuentas inactivas con un usuario de prueba autorizado.
+2. Probar las respuestas y filtros de la API con registros representativos,
+   incluyendo campos nulos y estados `true`/`false`; hasta ahora las consultas
+   se limitaron a verificar SQL y mapeo sin leer ni modificar filas.
+3. Revisar la compatibilidad de las demás tablas y módulos (documentos,
+   graduación y modelos académicos adicionales) por separado. La prueba de
+   esta etapa cubre solo los 11 modelos Core enumerados arriba.
+4. Antes de cualquier DDL, comparar el esquema real y el respaldo, preparar un
+   plan aditivo revisable y obtener autorización. Esta etapa preservó la base
+   y no aplicó cambios de esquema.
+5. Corregir el intérprete Python seleccionado en VS Code y repetir los
+   diagnósticos Pylance en ese entorno.
 
 ## Backend unificado
 

@@ -107,7 +107,7 @@ async def buscar_persona_por_cedula(
 async def listar_usuarios(
     skip: int = Query(default=0, ge=0, description="Número de registros a saltar (offset)."),
     limit: int = Query(default=50, ge=1, le=200, description="Número máximo de registros a retornar."),
-    estado: str | None = Query(default=None, description="Filtrar por estado: activo, inactivo, etc."),
+    estado: str | None = Query(default=None, description="Filtrar por estado: activo o inactivo."),
     db: AsyncSession = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ) -> UsuarioListOut:
@@ -117,8 +117,14 @@ async def listar_usuarios(
     )
 
     # Filtro opcional por estado
-    if estado:
-        query = query.where(Usuario.estado == estado)
+    if estado is not None:
+        normalized_status = estado.strip().lower()
+        if normalized_status not in {"activo", "inactivo"}:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="El estado debe ser 'activo' o 'inactivo'.",
+            )
+        query = query.where(Usuario.estado.is_(normalized_status == "activo"))
 
     # Contar total
     count_query = select(func.count()).select_from(query.subquery())

@@ -11,6 +11,18 @@ Scaffold inicial para la plataforma modular ITQ Conecta:
 La carpeta `itq_backend/` se conserva como respaldo de origen; usa únicamente
 `backend/` para ejecutar la aplicación. Su archivo de entorno no se copió.
 
+## Estado reciente del backend (2 de noviembre de 2026)
+
+Se adaptaron los modelos Core y la autenticación para reflejar los tipos
+booleanos y la nulabilidad observados en PostgreSQL. La aplicación carga, sus
+51 rutas aparecen en OpenAPI y las consultas de solo lectura probadas contra
+las tablas Core verificadas son aceptadas por la base. No se ejecutaron
+migraciones ni escrituras; tampoco se ha validado un login real. Antes de probar
+JWT, configura `SECRET_KEY` en `backend/.env`.
+
+El detalle de cambios, verificaciones, versiones detectadas y pendientes está
+en [backend/README.md](backend/README.md#estado-de-core-y-autenticacion-2-de-noviembre-de-2026).
+
 ## Requisitos
 
 - Node.js 22.12 o superior y npm.

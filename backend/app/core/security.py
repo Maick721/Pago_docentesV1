@@ -134,7 +134,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if usuario.estado != "activo":
+    if usuario.estado is not True:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="La cuenta de usuario está inactiva.",

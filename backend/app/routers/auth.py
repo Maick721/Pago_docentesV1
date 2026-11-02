@@ -30,7 +30,8 @@ def _build_me_response(usuario: Usuario) -> UsuarioMeResponse:
     roles_activos = [
         ur.rol.nombre
         for ur in usuario.roles
-        if ur.estado == "activo"
+        if ur.estado is True and ur.rol is not None
+        and ur.rol.estado is True and ur.rol.nombre is not None
     ]
     return UsuarioMeResponse(
         id_usuario=usuario.id_usuario,
@@ -71,7 +72,11 @@ async def login(
     usuario: Usuario | None = result.scalar_one_or_none()
 
     # Validaciones de existencia y contraseña
-    if not usuario or not verify_password(body.contrasena, usuario.contrasena_hash):
+    if (
+        not usuario
+        or not usuario.contrasena_hash
+        or not verify_password(body.contrasena, usuario.contrasena_hash)
+    ):
         # Auditoría de intento fallido (id_usuario=None si no se encontró)
         await registrar_auditoria(
             db=db,
@@ -88,7 +93,7 @@ async def login(
         )
 
     # Validación de estado
-    if usuario.estado != "activo":
+    if usuario.estado is not True:
         await registrar_auditoria(
             db=db,
             id_usuario=usuario.id_usuario,
@@ -100,7 +105,7 @@ async def login(
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"La cuenta está {usuario.estado}. Contacte al administrador.",
+            detail="La cuenta está inactiva. Contacte al administrador.",
         )
 
     # Generar token JWT

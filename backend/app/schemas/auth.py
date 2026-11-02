@@ -33,9 +33,9 @@ class TokenResponse(BaseModel):
 class UsuarioMeResponse(BaseModel):
     """Datos del usuario autenticado retornados en /auth/me y en el login."""
     id_usuario: int
-    nombre_usuario: str
-    correo_institucional: str
-    estado: str
+    nombre_usuario: str | None
+    correo_institucional: str | None
+    estado: bool | None
     roles: list[str] = Field(default_factory=list, description="Nombres de roles activos del usuario.")
 
     model_config = {"from_attributes": True}

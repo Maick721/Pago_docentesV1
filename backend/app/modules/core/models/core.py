@@ -5,7 +5,7 @@ Modelos SQLAlchemy 2.0 para el esquema 'core':
   - Permiso, Modulo, Unidad, Estudiante, Empleado, CatalogoAcademico
   - AcademicProgram, AcademicPeriod, Campus, AcademicModality, AcademicParallel
 """
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
     BigInteger,
@@ -14,7 +14,6 @@ from sqlalchemy import (
     ForeignKey,
     String,
     Text,
-    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -29,12 +28,12 @@ class Persona(Base):
     __table_args__ = {"schema": "core"}
 
     id_persona: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    cedula: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
-    nombres: Mapped[str] = mapped_column(String(150), nullable=False)
-    apellidos: Mapped[str] = mapped_column(String(150), nullable=False)
-    correo: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    cedula: Mapped[str | None] = mapped_column(String(20), unique=True, index=True)
+    nombres: Mapped[str | None] = mapped_column(String(100))
+    apellidos: Mapped[str | None] = mapped_column(String(100))
+    correo: Mapped[str | None] = mapped_column(String(150))
     telefono: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    estado: Mapped[str] = mapped_column(String(20), nullable=False, default="activo")
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     # Relaciones inversas
     usuario: Mapped["Usuario | None"] = relationship(back_populates="persona", uselist=False)
@@ -56,12 +55,12 @@ class Usuario(Base):
     id_persona: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("core.personas.id_persona", ondelete="SET NULL"), nullable=True
     )
-    nombre_usuario: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
-    correo_institucional: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    contrasena_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    estado: Mapped[str] = mapped_column(String(20), nullable=False, default="activo")
-    fecha_creacion: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+    nombre_usuario: Mapped[str | None] = mapped_column(String(100), unique=True, index=True)
+    correo_institucional: Mapped[str | None] = mapped_column(String(150), unique=True, index=True)
+    contrasena_hash: Mapped[str | None] = mapped_column(Text)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
+    fecha_creacion: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=False), nullable=True
     )
 
     # Relaciones
@@ -81,9 +80,9 @@ class Rol(Base):
     __table_args__ = {"schema": "core"}
 
     id_rol: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    nombre: Mapped[str | None] = mapped_column(String(100), unique=True)
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
-    estado: Mapped[str] = mapped_column(String(20), nullable=False, default="activo")
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     # Relación inversa
     asignaciones: Mapped[list["UsuarioRol"]] = relationship(back_populates="rol")
@@ -100,20 +99,20 @@ class UsuarioRol(Base):
     __table_args__ = {"schema": "core"}
 
     id_usuario_rol: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    id_usuario: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("core.usuarios.id_usuario", ondelete="CASCADE"), nullable=False
+    id_usuario: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("core.usuarios.id_usuario", ondelete="CASCADE")
     )
-    id_rol: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("core.roles.id_rol", ondelete="CASCADE"), nullable=False
+    id_rol: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("core.roles.id_rol", ondelete="CASCADE")
     )
-    fecha_asignacion: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+    fecha_asignacion: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=False), nullable=True
     )
-    estado: Mapped[str] = mapped_column(String(20), nullable=False, default="activo")
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     # Relaciones
-    usuario: Mapped[Usuario] = relationship(back_populates="roles")
-    rol: Mapped[Rol] = relationship(back_populates="asignaciones")
+    usuario: Mapped[Usuario | None] = relationship(back_populates="roles")
+    rol: Mapped[Rol | None] = relationship(back_populates="asignaciones")
 
     def __repr__(self) -> str:
         return f"<UsuarioRol(usuario={self.id_usuario}, rol={self.id_rol})>"
@@ -130,12 +129,12 @@ class Auditoria(Base):
     id_usuario: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("core.usuarios.id_usuario", ondelete="SET NULL"), nullable=True
     )
-    modulo: Mapped[str] = mapped_column(String(100), nullable=False)
-    accion: Mapped[str] = mapped_column(String(200), nullable=False)
-    tabla_afectada: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    modulo: Mapped[str | None] = mapped_column(String(100))
+    accion: Mapped[str | None] = mapped_column(String(100))
+    tabla_afectada: Mapped[str | None] = mapped_column(String(100))
     id_registro: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    fecha_hora: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
+    fecha_hora: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=False), nullable=True
     )
     direccion_ip: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
@@ -156,10 +155,10 @@ class Permiso(Base):
     __table_args__ = {"schema": "core"}
 
     id_permiso: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    nombre: Mapped[str | None] = mapped_column(String(100))
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
     accion: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    estado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     def __repr__(self) -> str:
         return f"<Permiso(id={self.id_permiso}, nombre={self.nombre})>"
@@ -175,9 +174,9 @@ class Modulo(Base):
     __table_args__ = {"schema": "core"}
 
     id_modulo: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(100), nullable=False)
+    nombre: Mapped[str | None] = mapped_column(String(100))
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
-    estado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     def __repr__(self) -> str:
         return f"<Modulo(id={self.id_modulo}, nombre={self.nombre})>"
@@ -193,9 +192,9 @@ class Unidad(Base):
     __table_args__ = {"schema": "core"}
 
     id_unidad: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(150), nullable=False)
+    nombre: Mapped[str | None] = mapped_column(String(150))
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
-    estado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     # Relación inversa
     empleados: Mapped[list["Empleado"]] = relationship(back_populates="unidad")
@@ -218,7 +217,7 @@ class Estudiante(Base):
         BigInteger, ForeignKey("core.personas.id_persona", ondelete="SET NULL"), nullable=True
     )
     codigo_estudiante: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    estado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     # Relación
     persona: Mapped["Persona | None"] = relationship(back_populates="estudiante", uselist=False)
@@ -245,8 +244,8 @@ class Empleado(Base):
     )
     codigo_empleado: Mapped[str | None] = mapped_column(String(50), nullable=True)
     cargo: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    fecha_ingreso: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    estado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    fecha_ingreso: Mapped[date | None] = mapped_column(nullable=True)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     # Relaciones
     persona: Mapped["Persona | None"] = relationship(back_populates="empleado", uselist=False)
@@ -270,7 +269,7 @@ class CatalogoAcademico(Base):
     codigo: Mapped[str | None] = mapped_column(String(50), nullable=True)
     nombre: Mapped[str | None] = mapped_column(String(150), nullable=True)
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
-    estado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    estado: Mapped[bool | None] = mapped_column(Boolean)
 
     def __repr__(self) -> str:
         return f"<CatalogoAcademico(id={self.id_catalogo}, nombre={self.nombre})>"

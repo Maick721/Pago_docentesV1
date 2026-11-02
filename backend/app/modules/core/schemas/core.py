@@ -2,20 +2,20 @@
 app/modules/core/schemas/core.py
 DTOs Pydantic v2 para el módulo Core: Personas, Usuarios, Roles, catálogos académicos y más.
 """
-from datetime import datetime
+from datetime import date, datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 # ─── Persona ─────────────────────────────────────────────────────────────────
 
 class PersonaBase(BaseModel):
-    cedula: str = Field(..., min_length=5, max_length=20, description="Número de cédula.")
-    nombres: str = Field(..., min_length=1, max_length=150)
-    apellidos: str = Field(..., min_length=1, max_length=150)
-    correo: str | None = Field(None, max_length=255)
+    cedula: str | None = Field(None, min_length=5, max_length=20, description="Número de cédula.")
+    nombres: str | None = Field(None, min_length=1, max_length=100)
+    apellidos: str | None = Field(None, min_length=1, max_length=100)
+    correo: str | None = Field(None, max_length=150)
     telefono: str | None = Field(None, max_length=20)
-    estado: str = Field(default="activo", max_length=20)
+    estado: bool | None = True
 
 
 class PersonaCreate(PersonaBase):
@@ -35,9 +35,9 @@ class PersonaOut(PersonaBase):
 class RolOut(BaseModel):
     """DTO de respuesta con datos de un rol."""
     id_rol: int
-    nombre: str
+    nombre: str | None
     descripcion: str | None = None
-    estado: str
+    estado: bool | None
 
     model_config = {"from_attributes": True}
 
@@ -46,8 +46,8 @@ class RolOut(BaseModel):
 
 class UsuarioBase(BaseModel):
     nombre_usuario: str = Field(..., min_length=3, max_length=100)
-    correo_institucional: str = Field(..., max_length=255)
-    estado: str = Field(default="activo", max_length=20)
+    correo_institucional: str = Field(..., max_length=150)
+    estado: bool = True
 
 
 class UsuarioCreate(UsuarioBase):
@@ -59,11 +59,11 @@ class UsuarioCreate(UsuarioBase):
 class UsuarioRolOut(BaseModel):
     """DTO de asignación usuario-rol con el rol anidado."""
     id_usuario_rol: int
-    id_usuario: int
-    id_rol: int
-    fecha_asignacion: datetime
-    estado: str
-    rol: RolOut
+    id_usuario: int | None
+    id_rol: int | None
+    fecha_asignacion: datetime | None
+    estado: bool | None
+    rol: RolOut | None
 
     model_config = {"from_attributes": True}
 
@@ -71,8 +71,11 @@ class UsuarioRolOut(BaseModel):
 class UsuarioOut(UsuarioBase):
     """DTO de respuesta con datos de un usuario (sin hash de contraseña)."""
     id_usuario: int
+    nombre_usuario: str | None
+    correo_institucional: str | None
+    estado: bool | None
     id_persona: int | None = None
-    fecha_creacion: datetime
+    fecha_creacion: datetime | None
     roles: list[UsuarioRolOut] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
@@ -172,7 +175,7 @@ class EmpleadoBase(BaseModel):
     id_unidad: int | None = None
     codigo_empleado: str | None = Field(None, max_length=50)
     cargo: str | None = Field(None, max_length=100)
-    fecha_ingreso: datetime | None = None
+    fecha_ingreso: date | None = None
     estado: bool = Field(default=True)
 
 
@@ -184,6 +187,7 @@ class EmpleadoCreate(EmpleadoBase):
 class EmpleadoOut(EmpleadoBase):
     """DTO de respuesta de un empleado."""
     id_empleado: int
+    estado: bool | None
 
     model_config = {"from_attributes": True}
 
