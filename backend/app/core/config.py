@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     )
     redis_url: str = "redis://localhost:6379/0"
     frontend_origin: str = "http://localhost:4200"
+    app_version: str = "1.0.0"
+    app_description: str = "Backend para el Sistema ITQ Conecta"
+    secret_key: str = ""
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 480
+    celery_broker_url: str | None = None
+    celery_result_backend: str | None = None
 
     model_config = SettingsConfigDict(
         # Ruta del archivo de configuración relativo al directorio desde el que

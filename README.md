@@ -5,7 +5,11 @@ Scaffold inicial para la plataforma modular ITQ Conecta:
 - Frontend Angular 22 standalone, Angular Material y Signals.
 - Backend FastAPI con Pydantic v2 y SQLAlchemy 2.0 async.
 - PostgreSQL 16 con `uuid-ossp` y Redis para Celery, iniciables con Docker Compose.
-- Módulo financiero de pagos a docentes en desarrollo.
+- Módulos institucionales de autenticación, Core, documentos, graduación y pagos
+  a docentes, reunidos en `backend/`.
+
+La carpeta `itq_backend/` se conserva como respaldo de origen; usa únicamente
+`backend/` para ejecutar la aplicación. Su archivo de entorno no se copió.
 
 ## Requisitos
 
@@ -25,7 +29,8 @@ docker compose up -d
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r backend\requirements.txt
-Copy-Item backend\.env.example backend\.env
+if (!(Test-Path backend\.env)) { Copy-Item backend\.env.example backend\.env }
+# Configura DATABASE_URL y reemplaza SECRET_KEY por una clave segura en backend\.env.
 ```
 
 En una terminal, inicia FastAPI:
@@ -35,10 +40,15 @@ Set-Location backend
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-La estructura inicial de PostgreSQL está en `backend/database/init.sql`.
-Docker la ejecuta al inicializar un volumen de base de datos vacío. Si ya
-existe un volumen con datos, el script no se vuelve a ejecutar ni modifica esa
-base de datos automáticamente.
+El servicio PostgreSQL de Compose publica el puerto `5433`. Ten en cuenta que
+`backend/database/init.sql` es un DDL legado del esquema `financiera`, no el
+esquema que consume el backend unificado. `backend/scripts/create_schemas.sql`
+crea Core, documentos y graduación, pero no crea las tablas actuales de
+`pagos_docentes`. Por eso, un volumen nuevo no queda listo para atender todas
+las rutas: usa una base ya preparada o completa y valida un script de
+inicialización para los cuatro esquemas antes de ejecutarlo. Compose solo
+ejecuta los SQL de inicialización al crear un volumen vacío; los existentes no
+se modifican automáticamente.
 
 En otra terminal, inicia Angular:
 
@@ -49,7 +59,7 @@ npm start
 
 Abre <http://localhost:4200>. Angular reenvía `/api` a FastAPI en el puerto
 8000. La documentación interactiva del backend está en
-<http://localhost:8000/docs> y el endpoint de salud en
+<http://localhost:8000/api/docs> y el endpoint de salud en
 <http://localhost:8000/api/health>.
 
 Redis y Celery están preparados en la infraestructura, pero el módulo de pagos
@@ -73,8 +83,10 @@ El resumen muestra pagos aprobados sin pagar y pagos listos sin aprobar que
 superan el umbral configurado. Los días y contadores se calculan en SQL; por
 ahora son indicadores en pantalla y no se envían notificaciones automáticas.
 Las aprobaciones son manuales hasta que se confirme el proveedor de correo
-institucional. La autenticación/RBAC central aún no está implementada; estos
-endpoints son solo para desarrollo local y no deben exponerse en producción.
+institucional. El backend incluye autenticación JWT para los módulos institucionales. El
+módulo de pagos todavía conserva un identificador de usuario temporal por
+query string y no aplica RBAC; no lo expongas en producción hasta conectarlo
+con la autenticación central y sus permisos.
 
 La documentación detallada del alcance, modelos Excel, base de datos, API,
 estado actual y próximos pasos está en
@@ -82,24 +94,27 @@ estado actual y próximos pasos está en
 
 Rutas API principales:
 
-- `GET/POST /api/finance/payments`
-- `GET /api/finance/payments/summary`
-- `POST /api/finance/payments/{id}/ready`
-- `POST /api/finance/payments/{id}/approval`
-- `POST /api/finance/payments/{id}/paid`
-- `GET /api/finance/payments/{id}/history`
-- `GET/PUT /api/finance/payments/settings`
+- `GET/POST /api/v1/finance/payments`
+- `GET /api/v1/finance/payments/summary`
+- `POST /api/v1/finance/payments/{id}/ready`
+- `POST /api/v1/finance/payments/{id}/approval`
+- `POST /api/v1/finance/payments/{id}/paid`
+- `GET /api/v1/finance/payments/{id}/history`
+- `GET/PUT /api/v1/finance/payments/settings`
 
 ## Estructura
 
 ```text
 backend/
   app/
-    core/       configuración, base de datos, health check y Celery
-    middleware/
-    modules/    pagos_docentes
-    shared/
-  database/     script SQL para la estructura inicial de pagos
+    core/       configuración, seguridad, base de datos, health check y Celery
+    middleware/ excepciones y auditoría
+    modules/    core, documentos y pagos_docentes
+    models/     modelos de graduación
+    routers/    autenticación y graduación
+    schemas/    contratos API
+  database/     SQL para el esquema de pagos
+  scripts/      utilidades de base de datos
 frontend/
   src/app/
     core/       servicios compartidos

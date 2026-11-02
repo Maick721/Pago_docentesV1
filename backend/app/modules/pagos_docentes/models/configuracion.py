@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (
-    BigInteger, CheckConstraint, DateTime, ForeignKey, Index, Integer, String,
+    BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Index, Integer, String,
     Text, UniqueConstraint, text,
 )
 from sqlalchemy.orm import Mapped, mapped_column

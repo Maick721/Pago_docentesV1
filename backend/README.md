@@ -2,23 +2,47 @@
 
 Última actualización: 2026-10-27
 
+## Backend unificado
+
+Este directorio reúne los módulos de ITQ Conecta y Pagos a Docentes. Los
+routers institucionales se sirven bajo `/api/v1`; salud permanece disponible
+en `/api` y `/api/v1/health`. La documentación OpenAPI está en `/api/docs`.
+
+Desde la raíz del repositorio, inicia el backend así:
+
+```powershell
+cd backend
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+# Configura DATABASE_URL y SECRET_KEY en .env antes de iniciar.
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+La aplicación registra autenticación, Core, documentos, graduación y pagos a
+docentes. No copies credenciales entre archivos `.env`; usa `backend/.env` y
+manténlo fuera del control de versiones.
+
+La descripción de carpetas y componentes está en
+[ESTRUCTURA_BACKEND.md](./ESTRUCTURA_BACKEND.md).
+
 Este documento registra el estado actual del backend y del módulo **Pagos a Docentes** para continuar el trabajo en otra sesión. No contiene credenciales; la URL de PostgreSQL se lee de `backend/.env`.
 
 ## Tecnologías y ejecución
 
 - FastAPI, SQLAlchemy 2 async, asyncpg y Pydantic v2.
-- Celery con broker/backend Redis configurables mediante `REDIS_URL`.
-- Python 3.13 instalado en Windows; el entorno local de este backend está en `backend/.venv/` y queda ignorado por Git.
+- Celery con broker/backend Redis configurables mediante `REDIS_URL`,
+  `CELERY_BROKER_URL` y `CELERY_RESULT_BACKEND`.
+- Usa el entorno Python 3.12 del repositorio en `..\.venv\`; el antiguo
+  `backend\.venv\` apunta a una instalación que no existe en esta máquina.
 
-Desde la raíz del repositorio, activar el entorno e iniciar la API:
+Desde la raíz del repositorio, activa el entorno e inicia la API:
 
 ```powershell
-cd backend
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
+Set-Location backend
 uvicorn app.main:app --reload
 ```
 
-Documentación interactiva: `http://127.0.0.1:8000/docs`.
+Documentación interactiva: `http://127.0.0.1:8000/api/docs`.
 
 La aplicación lee `.env` relativo al directorio de ejecución. Al iniciar desde `backend/`, usa `backend/.env`. No publiques ese archivo ni incluyas sus valores secretos en documentación.
 
@@ -49,7 +73,8 @@ No hay revisiones en `database/migrations/versions/` ni Alembic configurado en l
 
 Directorio: `app/modules/pagos_docentes/`.
 
-- `models.py`: mapea las nueve tablas de pagos y sus relaciones de `core`; los tipos, nulabilidad, columnas y FKs se compararon contra PostgreSQL. La comparación final no reportó diferencias. Los modelos `core` son referencias locales protegidas como solo lectura.
+- `models/`: separa los modelos de pagos por responsabilidad y los reexporta desde `models/__init__.py`.
+- `referencias_docentes.py`: conserva referencias de solo lectura a tablas `core` usando las tablas ORM canónicas del módulo Core.
 - `enums.py`: estados, origen de aprobación, estado de pago, unidad de umbral; acepta minúsculas/alias de API y produce valores válidos para DB.
 - `schemas.py`: contratos de creación, pago, configuración, alertas, historial, resumen y lookups alineados con el cliente Angular.
 - `services/`: consultas relacionales a través de `pagos_docentes.docentes`, `periodos` y `core.catalogos_academicos`; flujo de pago usa estados y restricciones reales.
@@ -93,7 +118,7 @@ No se insertaron ni actualizaron filas en `core` u otros esquemas. En el momento
 ## Pendientes y límites
 
 1. **Datos para escritura:** no se puede crear un módulo válido sin docente, carrera y periodo existentes. El periodo de prueba está; docentes requieren `core.empleados` y `core.personas`, carreras requieren `core.catalogos_academicos` con `tipo='CARRERA'`. El historial/operaciones también referencian `core.usuarios`. No insertar esos datos sin autorización explícita, porque implicaría modificar `core`.
-2. **Autenticación:** `router.py` conserva `get_current_user` como stub que recibe `id_usuario` por query. Aún no es autenticación real; además, cualquier actor enviado debe existir en `core.usuarios` para satisfacer las FKs.
+2. **Autenticación de pagos:** `router.py` conserva `get_current_user` como stub que recibe `id_usuario` por query. La autenticación JWT ya existe para otros módulos, pero pagos todavía no la utiliza ni aplica RBAC; cualquier actor enviado debe existir en `core.usuarios` para satisfacer las FKs.
 3. **Celery/Redis/correo:** `app/tasks.py` solo contiene `ping`. No hay tareas programadas de alertas ni lector IMAP/SMTP implementado. Redis no respondía en `localhost:6379` durante la revisión. Faltan servicio Redis activo y configuración/secretos de correo antes de abordar esas funciones.
 4. **Pruebas de escritura y flujo:** no se ejecutaron POST/PUT que escriban datos. Deben probarse después de disponer de referencias válidas y actor autorizado.
 5. **Datos del frontend:** los GET ya funcionan, pero lookups devuelve docentes/carreras vacíos mientras `core` siga vacío.
@@ -101,6 +126,6 @@ No se insertaron ni actualizaron filas en `core` u otros esquemas. En el momento
 ## Para continuar
 
 1. Confirmar cómo se crearán o identificarán referencias existentes en `core`, sin alterar otros esquemas.
-2. Sustituir el stub de usuario por la dependencia de autenticación autorizada y probar POST/transiciones con un usuario real.
+2. Sustituir el stub de usuario en pagos por la dependencia JWT autorizada y probar POST/transiciones con un usuario real.
 3. Activar Redis y definir el alcance/configuración de alertas y correo antes de implementar tareas Celery.
 4. Decidir si se conserva SQL manual versionado o se adopta Alembic tras establecer una línea base.

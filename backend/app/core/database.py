@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -23,14 +23,26 @@ engine = create_async_engine(settings.database_url, pool_pre_ping=True)
 # El fabricante de sesiones crea una sesión independiente para cada operación.
 # expire_on_commit=False permite leer los valores del objeto tras confirmar
 # una transacción sin que SQLAlchemy intente recargarlos automáticamente.
-SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+SessionLocal = AsyncSessionLocal
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Entrega una sesión y confirma o revierte la transacción de la petición."""
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 async def get_db_session() -> AsyncIterator[AsyncSession]:
-    """Entrega una sesión a FastAPI y garantiza su cierre al terminar.
+    """Entrega una sesión sin confirmar automáticamente la transacción.
 
     FastAPI usa esta función como dependencia de los endpoints. El bloque
     asíncrono libera la sesión incluso si la petición termina con un error.
     """
-    async with SessionLocal() as session:
+    async with AsyncSessionLocal() as session:
         yield session
