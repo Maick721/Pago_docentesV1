@@ -12,3 +12,5 @@ npm start
 ```
 
 La guía para iniciar todo el stack está en el [README de la raíz](../README.md).
+La [guía detallada del frontend](./README_FRONTEND.md) incluye la estructura completa,
+el resumen de los cambios, los problemas detectados y las mejoras pendientes.
