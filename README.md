@@ -104,6 +104,30 @@ La documentación detallada del alcance, modelos Excel, base de datos, API,
 estado actual y próximos pasos está en
 [docs/modulo-pagos-docentes.md](docs/modulo-pagos-docentes.md).
 
+## Actualización del frontend — 2 de noviembre de 2026
+
+El módulo de Pagos a Docentes se reorganizó en
+`frontend/src/app/modules/pago_docentes/`. La página coordina el dashboard y
+sus responsabilidades se distribuyeron entre componentes para el filtro de
+carreras, el resumen, la bandeja, las acciones y el formulario. El alta se
+divide en secciones académicas, valores del pago y seguimiento; los modelos y
+el servicio HTTP también están separados. Se conservó el formulario reactivo
+y el flujo existente.
+
+Se añadieron sugerencias de carreras agrupadas por área, búsqueda que ignora
+tildes y navegación por teclado. El formulario y las acciones se cargan bajo
+demanda para respetar el presupuesto del bundle: la última compilación
+documentada produjo un bundle inicial de 637.43 kB, bajo el límite de 650 kB.
+También se probaron localmente los flujos y se creó el registro ficticio
+`Módulo de prueba visual`; no representa un pago aprobado ni pagado.
+
+**Pendientes:** integrar el inicio de sesión para reemplazar el `id_usuario`
+temporal, configurar `SECRET_KEY` solo en el entorno local, y ofrecer una
+selección independiente para las carreras de Validación. La guía incluye el
+árbol completo del frontend, responsabilidades por archivo, verificaciones,
+hallazgos y próximos pasos:
+[frontend/README_FRONTEND.md](frontend/README_FRONTEND.md).
+
 Rutas API principales:
 
 - `GET/POST /api/v1/finance/payments`
