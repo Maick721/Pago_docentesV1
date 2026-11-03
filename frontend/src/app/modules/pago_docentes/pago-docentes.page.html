@@ -1,0 +1,172 @@
+<mat-toolbar class="topbar">
+  <div class="brand-lockup">
+    <img class="brand-logo" src="/itq-logo.svg" alt="Logo ITQ" />
+    <span class="brand-name">Conecta</span>
+  </div>
+  <span class="toolbar-divider" aria-hidden="true"></span>
+  <span class="workspace-label">Área financiera</span>
+  <span class="toolbar-spacer"></span>
+  <span class="user-label">Gestión de pagos docentes</span>
+</mat-toolbar>
+
+<main class="dashboard">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">ITQ CONECTA / ÁREA FINANCIERA</p>
+      <h1>Pagos a docentes</h1>
+      <p class="intro">
+        Registra módulos, controla aprobaciones y consulta el estado de pago por docente.
+      </p>
+    </div>
+    <div class="heading-controls">
+      <form class="actor-picker" [formGroup]="actorForm">
+        <label for="actor-id">ID de operador</label>
+        <input id="actor-id" type="number" min="1" formControlName="id_usuario" />
+        <small>Debe existir en core.usuarios</small>
+      </form>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="showCreateForm.set(!showCreateForm())"
+      >
+        {{ showCreateForm() ? 'Cancelar' : 'Registrar módulo' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="notice notice-error" role="alert">{{ error() }}</div>
+  }
+  @if (notice()) {
+    <div class="notice notice-success" role="status">{{ notice() }}</div>
+  }
+
+  <app-payment-overview
+    [summary]="summary()"
+    [alerts]="alerts()"
+    [threshold]="threshold()"
+    [thresholdUnit]="thresholdUnit()"
+  />
+
+  <section class="settings-row" aria-label="Configuración de alertas">
+    <div>
+      <strong>Umbral de alertas</strong>
+      <p>Aplica a pagos aprobados sin pagar y pagos listos sin aprobar.</p>
+    </div>
+    <form class="threshold-form" [formGroup]="thresholdForm" (ngSubmit)="saveThreshold()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Umbral</mat-label>
+        <input matInput type="number" min="1" max="365" formControlName="valor" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Unidad</mat-label>
+        <mat-select formControlName="unidad">
+          <mat-option value="DIAS">Días</mat-option>
+          <mat-option value="MESES">Meses</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button
+        mat-stroked-button
+        type="submit"
+        [disabled]="thresholdForm.invalid || actorId() === null"
+      >
+        Guardar umbral
+      </button>
+    </form>
+  </section>
+
+  @if (showCreateForm()) {
+    @defer {
+      <app-payment-create-form
+        [form]="createForm"
+        [lookups]="lookups()"
+        [actorId]="actorId()"
+        (started)="paymentSubmissionStarted()"
+        (created)="paymentCreated()"
+        (failed)="error.set($event)"
+        (cancelled)="showCreateForm.set(false)"
+      />
+    }
+  }
+
+  @defer (when selectedAction()) {
+    @if (selectedAction(); as selected) {
+      <app-payment-action
+        [payment]="selected.payment"
+        [action]="selected.action"
+        [actorId]="actorId()"
+        (cancelled)="cancelAction()"
+        (completed)="paymentActionCompleted($event)"
+        (failed)="error.set($event)"
+      />
+    }
+  }
+
+  <section class="payments-section" aria-labelledby="payments-heading">
+    <div class="section-title">
+      <div>
+        <p class="eyebrow">BANDEJA FINANCIERA</p>
+        <h2 id="payments-heading">Registros de pago</h2>
+      </div>
+      <span class="result-count">{{ total() }} registros</span>
+    </div>
+
+    <form class="filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Buscar docente o módulo</mat-label>
+        <input matInput formControlName="q" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Periodo</mat-label>
+        <input matInput formControlName="periodo" placeholder="2026-1" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Mes de inicio</mat-label>
+        <mat-select formControlName="mes">
+          <mat-option value="">Todos</mat-option>
+          @for (month of months; track month; let index = $index) {
+            <mat-option [value]="'' + (index + 1)">{{ month }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <app-career-filter
+        [control]="filters.controls.carrera"
+        [careers]="lookups().carreras"
+      />
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="estado">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="borrador">Borrador</mat-option>
+          <mat-option value="listo">Listo para pago</mat-option>
+          <mat-option value="aprobado">Por pagar</mat-option>
+          <mat-option value="pagado">Pagado</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    <app-payment-list
+      [loading]="loading()"
+      [payments]="payments()"
+      [total]="total()"
+      [page]="page()"
+      [pageSize]="pageSize"
+      [expandedHistory]="expandedHistory()"
+      [expandedDetails]="expandedDetails()"
+      [history]="history()"
+      (actionRequested)="beginAction($event.payment, $event.action)"
+      (detailsToggled)="toggleDetails($event)"
+      (historyToggled)="toggleHistory($event)"
+      (pageChanged)="changePage($event)"
+    />
+  </section>
+
+  <footer class="integration-note">
+    <strong>Integración de correo pendiente de configuración</strong>
+    <span>
+      Las aprobaciones se registran manualmente por ahora. Al definirse el proveedor institucional,
+      se conectará la captura automática y el registro de fallas de lectura.
+    </span>
+  </footer>
+</main>

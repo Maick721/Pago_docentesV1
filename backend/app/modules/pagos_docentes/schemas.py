@@ -151,6 +151,7 @@ class PaymentPage(pydantic.BaseModel):
 class LookupOption(pydantic.BaseModel):
     id: int
     nombre: str
+    grupo: str | None = None
 
 
 class TeacherOption(pydantic.BaseModel):

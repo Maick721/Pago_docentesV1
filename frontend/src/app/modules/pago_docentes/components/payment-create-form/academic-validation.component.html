@@ -1,0 +1,63 @@
+<div class="form-subsection" [formGroup]="form()">
+          <h3>Validación académica</h3>
+          <p>Registra el cumplimiento indicado en el modelo; los campos vacíos quedan sin validar.</p>
+          <div class="payment-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Aulas virtuales</mat-label>
+              <mat-select formControlName="aulas_virtuales">
+                <mat-option value="">Sin revisar</mat-option>
+                @for (option of requirementOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            @if (form().controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>PEA</mat-label>
+                <mat-select formControlName="pea">
+                  <mat-option value="">Sin revisar</mat-option>
+                  @for (option of requirementOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Informes finales</mat-label>
+                <mat-select formControlName="informes_finales">
+                  <mat-option value="">Sin revisar</mat-option>
+                  @for (option of requirementOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            } @else {
+              <mat-form-field appearance="outline">
+                <mat-label>Guía / recursos</mat-label>
+                <mat-select formControlName="guia_recursos">
+                  <mat-option value="">Sin revisar</mat-option>
+                  @for (option of requirementOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Registro de notas</mat-label>
+                <mat-select formControlName="registro_notas">
+                  <mat-option value="">Sin revisar</mat-option>
+                  @for (option of requirementOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Portafolio SGA</mat-label>
+                <mat-select formControlName="portafolio_sga">
+                  <mat-option value="">Sin revisar</mat-option>
+                  @for (option of requirementOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+        </div>

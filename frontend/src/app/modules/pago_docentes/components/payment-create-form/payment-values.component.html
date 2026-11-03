@@ -1,0 +1,68 @@
+<div class="form-subsection" [formGroup]="form()">
+          <h3>Valores del pago</h3>
+          <p>
+            Los valores se guardan como los confirmes. No se aplican fórmulas automáticas mientras
+            no se validen con Financiero.
+          </p>
+          <div class="payment-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Horas proyectadas</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="horas_proyectadas" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Horas reales</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="horas_reales" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Valor hora</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="valor_hora" />
+            </mat-form-field>
+            @if (form().controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Valor a facturar</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="valor_facturar" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Descuento (%)</mat-label>
+                <input matInput type="number" min="0" max="100" step="0.01" formControlName="descuento_porcentaje" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Descuento aplicado</mat-label>
+                <input matInput type="number" min="0" step="0.01" formControlName="descuento_aplicado" />
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline">
+              <mat-label>Retención</mat-label>
+              <input matInput type="number" min="0" step="0.01" formControlName="retencion" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Criterio de aprobación</mat-label>
+              <input matInput formControlName="criterio" />
+            </mat-form-field>
+            @if (form().controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Criterio TTHH</mat-label>
+                <input matInput formControlName="criterio_tthh" />
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline">
+              <mat-label>Número de factura</mat-label>
+              <input matInput formControlName="numero_factura" />
+            </mat-form-field>
+            <mat-form-field class="date-field" appearance="outline">
+              <mat-label>Fecha de factura</mat-label>
+              <input #invoiceDateInput matInput type="date" formControlName="fecha_factura" />
+              <button
+                mat-icon-button
+                matSuffix
+                color="primary"
+                type="button"
+                class="date-picker-toggle"
+                aria-label="Abrir calendario de fecha de factura"
+                (click)="openDatePicker(invoiceDateInput)"
+              >
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+              </button>
+            </mat-form-field>
+          </div>
+        </div>

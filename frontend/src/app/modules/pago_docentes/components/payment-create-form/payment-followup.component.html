@@ -1,0 +1,74 @@
+<div class="form-subsection" [formGroup]="form()">
+          <h3>Seguimiento y aprobación</h3>
+          <div class="payment-form">
+            @if (form().controls.modelo.value === 'carrera') {
+              <mat-form-field class="date-field" appearance="outline">
+                <mat-label>Registro de información</mat-label>
+                <input #informationDateInput matInput type="date" formControlName="fecha_registro_informacion" />
+                <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario de fecha de registro" (click)="openDatePicker(informationDateInput)">
+                  <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+                </button>
+              </mat-form-field>
+              <mat-form-field class="date-field" appearance="outline">
+                <mat-label>Entrega al coordinador</mat-label>
+                <input #coordinatorDateInput matInput type="date" formControlName="fecha_entrega_coordinador" />
+                <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario de entrega al coordinador" (click)="openDatePicker(coordinatorDateInput)">
+                  <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+                </button>
+              </mat-form-field>
+              <mat-form-field class="date-field" appearance="outline">
+                <mat-label>Entrega a Financiero</mat-label>
+                <input #financeDateInput matInput type="date" formControlName="fecha_entrega_financiero" />
+                <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario de entrega a Financiero" (click)="openDatePicker(financeDateInput)">
+                  <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+                </button>
+              </mat-form-field>
+            } @else {
+              <mat-form-field class="date-field" appearance="outline">
+                <mat-label>Fecha de actualización</mat-label>
+                <input #updateDateInput matInput type="date" formControlName="fecha_actualizacion" />
+                <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario de fecha de actualización" (click)="openDatePicker(updateDateInput)">
+                  <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+                </button>
+              </mat-form-field>
+              <mat-form-field class="date-field" appearance="outline">
+                <mat-label>Aprobación para pago</mat-label>
+                <input #approvalDateInput matInput type="date" formControlName="fecha_aprobacion_pago" />
+                <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario de aprobación para pago" (click)="openDatePicker(approvalDateInput)">
+                  <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+                </button>
+              </mat-form-field>
+            }
+            <mat-form-field class="date-field" appearance="outline">
+              <mat-label>Fecha de correcciones</mat-label>
+              <input #correctionsDateInput matInput type="date" formControlName="fecha_correcciones" />
+              <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario de fecha de correcciones" (click)="openDatePicker(correctionsDateInput)">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+              </button>
+            </mat-form-field>
+            <mat-form-field class="date-field" appearance="outline">
+              <mat-label>Primer seguimiento</mat-label>
+              <input #firstFollowupDateInput matInput type="date" formControlName="fecha_seguimiento" />
+              <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario del primer seguimiento" (click)="openDatePicker(firstFollowupDateInput)">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+              </button>
+            </mat-form-field>
+            <mat-form-field class="date-field" appearance="outline">
+              <mat-label>Segundo seguimiento</mat-label>
+              <input #secondFollowupDateInput matInput type="date" formControlName="fecha_segundo_seguimiento" />
+              <button mat-icon-button matSuffix color="primary" type="button" class="date-picker-toggle" aria-label="Abrir calendario del segundo seguimiento" (click)="openDatePicker(secondFollowupDateInput)">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+              </button>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Observaciones</mat-label>
+              <textarea matInput rows="2" formControlName="observaciones"></textarea>
+            </mat-form-field>
+            @if (form().controls.modelo.value === 'carrera') {
+              <mat-form-field appearance="outline">
+                <mat-label>Prioridad</mat-label>
+                <input matInput formControlName="seguimiento" />
+              </mat-form-field>
+            }
+          </div>
+        </div>

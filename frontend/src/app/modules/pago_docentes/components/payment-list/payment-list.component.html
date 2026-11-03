@@ -1,0 +1,195 @@
+    @if (loading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="34" />
+        <span>Cargando registros...</span>
+      </div>
+    } @else if (payments().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon" aria-hidden="true">$</span>
+        <h3>No hay registros para mostrar</h3>
+        <p>Registra un módulo docente o ajusta los filtros de búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Docente / módulo</th>
+              <th>Carrera / periodo</th>
+              <th>Fechas del módulo</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th class="actions-heading">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (payment of payments(); track payment.id) {
+              <tr [class.overdue-row]="payment.en_mora || payment.listo_atrasado">
+                <td>
+                  <strong>{{ payment.docente }}</strong>
+                  <span class="secondary-text">{{ payment.modulo }}</span>
+                  <span class="secondary-text">
+                    {{ payment.modelo === 'carrera' ? 'Modelo Carrera' : 'Modelo Validación' }}
+                    @if (payment.datos_modelo?.codigo_eva) {
+                      · EVA {{ payment.datos_modelo?.codigo_eva }}
+                    }
+                  </span>
+                  @if (payment.datos_modelo?.materia) {
+                    <span class="secondary-text">{{ payment.datos_modelo?.materia }}</span>
+                  }
+                </td>
+                <td>
+                  <strong>{{ payment.carrera }}</strong>
+                  <span class="secondary-text">{{ payment.periodo_academico }}</span>
+                </td>
+                <td>{{ payment.fecha_inicio }} — {{ payment.fecha_fin }}</td>
+                <td>{{ formatMoney(payment.monto) }}</td>
+                <td>
+                  <span class="status-chip" [class]="'status-chip status-' + payment.estado">
+                    {{
+                      payment.en_mora
+                        ? 'Aprobado atrasado'
+                        : payment.listo_atrasado
+                          ? 'Listo atrasado'
+                          : statusLabel(payment.estado)
+                    }}
+                  </span>
+                  @if (payment.dias_desde_aprobacion !== null && payment.estado === 'aprobado') {
+                    <span class="secondary-text">{{ payment.dias_desde_aprobacion }} días desde aprobación</span>
+                  }
+                  @if (payment.dias_desde_listo !== null && payment.estado === 'listo') {
+                    <span class="secondary-text">{{ payment.dias_desde_listo }} días desde que quedó listo</span>
+                  }
+                </td>
+                <td>
+                  <div class="row-actions">
+                    @if (payment.estado === 'borrador') {
+                      <button mat-button type="button" (click)="actionRequested.emit({ payment, action: 'ready' })">Marcar listo</button>
+                    } @else if (payment.estado === 'listo') {
+                      <button mat-button type="button" (click)="actionRequested.emit({ payment, action: 'approval' })">
+                        Registrar aprobación
+                      </button>
+                    } @else if (payment.estado === 'aprobado') {
+                      <button mat-button type="button" (click)="actionRequested.emit({ payment, action: 'paid' })">
+                        Marcar pagado
+                      </button>
+                    }
+                    <button mat-button type="button" (click)="detailsToggled.emit(payment)">
+                      {{ expandedDetails() === payment.id ? 'Ocultar detalle' : 'Ver detalle' }}
+                    </button>
+                    <button mat-button type="button" (click)="historyToggled.emit(payment)">
+                      {{ expandedHistory() === payment.id ? 'Ocultar historial' : 'Historial' }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              @if (expandedHistory() === payment.id) {
+                <tr class="history-row">
+                  <td colspan="6">
+                    <strong>Historial de cambios</strong>
+                    @if (history().length === 0) {
+                      <p>No hay eventos de historial para este registro.</p>
+                    } @else {
+                      <ol class="history-list">
+                        @for (record of history(); track record.id) {
+                          <li>
+                            <span>{{ record.detalle }}</span>
+                            <small>{{ record.actor }} · {{ formatDate(record.creado_en) }}</small>
+                          </li>
+                        }
+                      </ol>
+                    }
+                  </td>
+                </tr>
+              }
+              @if (expandedDetails() === payment.id && payment.datos_modelo; as details) {
+                <tr class="history-row">
+                  <td colspan="6">
+                    <strong>
+                      Detalle del modelo {{ payment.modelo === 'carrera' ? 'Carrera' : 'Validación' }}
+                    </strong>
+                    <div class="payment-details">
+                      @if (details.contrato) { <span><b>Contrato:</b> {{ details.contrato }}</span> }
+                      @if (details.condicion) { <span><b>Condición:</b> {{ details.condicion }}</span> }
+                      @if (details.codigo_eva) { <span><b>Código EVA:</b> {{ details.codigo_eva }}</span> }
+                      @if (details.materia) { <span><b>Materia:</b> {{ details.materia }}</span> }
+                      @if (details.programa_grupo) { <span><b>Programa / grupo:</b> {{ details.programa_grupo }}</span> }
+                      @if (details.turno) { <span><b>Turno:</b> {{ details.turno }}</span> }
+                      @if (details.jornada) { <span><b>Jornada:</b> {{ details.jornada }}</span> }
+                      @if (details.horas_proyectadas !== null && details.horas_proyectadas !== undefined) {
+                        <span><b>Horas proyectadas:</b> {{ details.horas_proyectadas }}</span>
+                      }
+                      @if (details.horas_reales !== null && details.horas_reales !== undefined) {
+                        <span><b>Horas reales:</b> {{ details.horas_reales }}</span>
+                      }
+                      @if (details.valor_hora !== null && details.valor_hora !== undefined) {
+                        <span><b>Valor hora:</b> {{ formatMoney(details.valor_hora) }}</span>
+                      }
+                      @if (details.retencion !== null && details.retencion !== undefined) {
+                        <span><b>Retención:</b> {{ formatMoney(details.retencion) }}</span>
+                      }
+                      @if (details.numero_factura) { <span><b>Factura:</b> {{ details.numero_factura }}</span> }
+                      @if (details.aulas_virtuales) { <span><b>Aulas virtuales:</b> {{ details.aulas_virtuales }}</span> }
+                      @if (details.modelo === 'carrera') {
+                        @if (details.pea) { <span><b>PEA:</b> {{ details.pea }}</span> }
+                        @if (details.informes_finales) { <span><b>Informes:</b> {{ details.informes_finales }}</span> }
+                        @if (details.pao) { <span><b>PAO:</b> {{ details.pao }}</span> }
+                        @if (details.dias_clase !== undefined && details.dias_clase !== null) {
+                          <span><b>Días de clase:</b> {{ details.dias_clase }}</span>
+                        }
+                        @if (details.valor_facturar !== null && details.valor_facturar !== undefined) {
+                          <span><b>Valor a facturar:</b> {{ formatMoney(details.valor_facturar) }}</span>
+                        }
+                        @if (details.descuento_porcentaje !== null && details.descuento_porcentaje !== undefined) {
+                          <span><b>Descuento:</b> {{ details.descuento_porcentaje }}%</span>
+                        }
+                        @if (details.descuento_aplicado !== null && details.descuento_aplicado !== undefined) {
+                          <span><b>Descuento aplicado:</b> {{ formatMoney(details.descuento_aplicado) }}</span>
+                        }
+                        @if (details.criterio_tthh) { <span><b>Criterio TTHH:</b> {{ details.criterio_tthh }}</span> }
+                        @if (details.fecha_entrega_financiero) {
+                          <span><b>Entrega a Financiero:</b> {{ details.fecha_entrega_financiero }}</span>
+                        }
+                      } @else {
+                        @if (details.modulo_nucleo_ciclo) {
+                          <span><b>Módulo / núcleo / ciclo:</b> {{ details.modulo_nucleo_ciclo }}</span>
+                        }
+                        @if (details.guia_recursos) { <span><b>Guía / recursos:</b> {{ details.guia_recursos }}</span> }
+                        @if (details.registro_notas) { <span><b>Notas:</b> {{ details.registro_notas }}</span> }
+                        @if (details.portafolio_sga) { <span><b>Portafolio SGA:</b> {{ details.portafolio_sga }}</span> }
+                        @if (details.fecha_aprobacion_pago) {
+                          <span><b>Aprobación para pago:</b> {{ details.fecha_aprobacion_pago }}</span>
+                        }
+                      }
+                      @if (details.criterio) { <span><b>Criterio:</b> {{ details.criterio }}</span> }
+                      @if (details.observaciones) {
+                        <span class="details-wide"><b>Observaciones:</b> {{ details.observaciones }}</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="Paginación de registros">
+        <button
+          mat-button
+          type="button"
+          [disabled]="page() <= 1"
+          (click)="pageChanged.emit(page() - 1)"
+        >
+          Anterior
+        </button>
+        <span>Página {{ page() }} de {{ pageCount() }}</span>
+        <button
+          mat-button
+          type="button"
+          [disabled]="page() >= pageCount()"
+          (click)="pageChanged.emit(page() + 1)"
+        >
+          Siguiente
+        </button>
+      </nav>
+    }

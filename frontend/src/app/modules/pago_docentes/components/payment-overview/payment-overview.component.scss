@@ -1,0 +1,156 @@
+:host {
+  display: block;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summary-card,
+.alerts-panel {
+  background: #fff;
+  border: 1px solid var(--itq-border);
+  border-radius: 10px;
+}
+
+.summary-card mat-card-content {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px;
+}
+
+.summary-label,
+.summary-hint,
+.result-count {
+  color: #5c5c5c;
+  font-size: 13px;
+}
+
+.summary-card strong {
+  margin: 7px 0 3px;
+  color: var(--itq-ink);
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.summary-warning {
+  background: #fff8f9;
+  border-color: #f0b6bf;
+  border-top: 3px solid var(--itq-red);
+}
+
+.summary-warning strong,
+.alert-number {
+  color: var(--itq-red);
+}
+
+.alerts-panel {
+  margin-top: 22px;
+  padding: 22px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.section-title h2 {
+  margin: 0;
+  color: var(--itq-ink);
+  font-size: 22px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--itq-blue);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.alerts-empty {
+  margin: 0;
+  padding: 14px 18px;
+  background: #f5f5f5;
+  border-left: 3px solid #050505;
+  color: #5c5c5c;
+  font-size: 13px;
+}
+
+.alert-number {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 14px 13px;
+  border-bottom: 1px solid var(--itq-border);
+}
+
+th {
+  background: #f7f7f7;
+  color: #666;
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+td {
+  color: #333;
+  font-size: 13px;
+}
+
+td strong,
+.secondary-text {
+  display: block;
+}
+
+.secondary-text {
+  margin-top: 4px;
+  color: #686868;
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .summary-card mat-card-content {
+    min-height: 116px;
+    padding: 14px;
+  }
+
+  .summary-card strong {
+    font-size: 27px;
+  }
+
+  .alerts-panel {
+    padding: 18px 14px;
+  }
+}

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 
-import { DashboardPage } from './modules/dashboard/dashboard.page';
+import { PagoDocentesPage } from './modules/pago_docentes/pago-docentes.page';
 
 export const routes: Routes = [
-  { path: '', component: DashboardPage },
+  { path: '', component: PagoDocentesPage },
   { path: '**', redirectTo: '' },
 ];

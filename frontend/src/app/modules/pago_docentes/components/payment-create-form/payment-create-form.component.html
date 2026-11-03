@@ -1,0 +1,173 @@
+    <section class="form-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">NUEVO REGISTRO</p>
+          <h2>Registrar módulo docente</h2>
+        </div>
+      </div>
+      <form class="payment-form" [formGroup]="form()" (ngSubmit)="createPayment()">
+        @if (lookups().docentes.length === 0 || lookups().carreras.length === 0) {
+          <p class="lookup-warning">
+            No hay docentes o carreras activas disponibles. Se necesitan referencias válidas en la base para crear un módulo.
+          </p>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label>Modelo de registro</mat-label>
+          <mat-select formControlName="modelo">
+            <mat-option value="carrera">Modelo Carrera</mat-option>
+            <mat-option value="validacion">Modelo Validación</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Condición</mat-label>
+          <input matInput formControlName="condicion" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Docente</mat-label>
+          <mat-select formControlName="id_docente">
+            @for (teacher of lookups().docentes; track teacher.id_docente) {
+              <mat-option [value]="teacher.id_docente">
+                {{ teacher.nombre }} · {{ teacher.cedula || teacher.correo || 'Sin contacto' }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Contrato</mat-label>
+          <input matInput formControlName="contrato" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Módulo</mat-label>
+          <input matInput formControlName="modulo" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Carrera</mat-label>
+          <mat-select formControlName="id_carrera" panelClass="career-options-panel"
+            panelWidth="min(440px, calc(100vw - 32px))">
+            @for (group of careerGroups(); track group.name) {
+              <mat-optgroup [label]="group.name">
+                @for (career of group.careers; track career.id) {
+                  <mat-option [value]="career.id">{{ career.nombre }}</mat-option>
+                }
+              </mat-optgroup>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Periodo académico</mat-label>
+          <mat-select formControlName="id_periodo">
+            @for (period of lookups().periodos; track period.id) {
+              <mat-option [value]="period.id">{{ period.nombre }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Código EVA</mat-label>
+          <input matInput formControlName="codigo_eva" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Materia / paralelo</mat-label>
+          <input matInput formControlName="materia" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Programa / grupo</mat-label>
+          <input matInput formControlName="programa_grupo" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Paralelo</mat-label>
+          <input matInput formControlName="paralelo" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Número de módulo</mat-label>
+          <input matInput type="number" min="0" formControlName="numero_modulo" />
+        </mat-form-field>
+        @if (form().controls.modelo.value === 'carrera') {
+          <mat-form-field appearance="outline">
+            <mat-label>PAO</mat-label>
+            <input matInput formControlName="pao" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Nivel</mat-label>
+            <input matInput formControlName="nivel" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Turno</mat-label>
+            <input matInput formControlName="turno" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Días de clase</mat-label>
+            <input matInput type="number" min="0" formControlName="dias_clase" />
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline">
+            <mat-label>Módulo / núcleo / ciclo</mat-label>
+            <input matInput formControlName="nivel" />
+          </mat-form-field>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label>Jornada</mat-label>
+          <input matInput formControlName="jornada" />
+        </mat-form-field>
+        <mat-form-field class="date-field" appearance="outline">
+          <mat-label>Fecha de inicio</mat-label>
+          <input
+            #startDateInput
+            matInput
+            type="date"
+            [max]="form().controls.fecha_fin.value"
+            formControlName="fecha_inicio"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            color="primary"
+            type="button"
+            class="date-picker-toggle"
+            aria-label="Abrir calendario de fecha de inicio"
+            (click)="openDatePicker(startDateInput)"
+          >
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+          </button>
+        </mat-form-field>
+        <mat-form-field class="date-field" appearance="outline">
+          <mat-label>Fecha de fin</mat-label>
+          <input
+            #endDateInput
+            matInput
+            type="date"
+            [min]="form().controls.fecha_inicio.value"
+            formControlName="fecha_fin"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            color="primary"
+            type="button"
+            class="date-picker-toggle"
+            aria-label="Abrir calendario de fecha de fin"
+            (click)="openDatePicker(endDateInput)"
+          >
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h4v4H7z" /></svg>
+          </button>
+        </mat-form-field>
+        @if (form().hasError('invalidDateRange')) {
+          <p class="lookup-warning" role="alert">
+            Corrige el rango: la fecha de fin no puede ser anterior a la de inicio.
+          </p>
+        }
+        <app-academic-validation [form]="form()" />
+        <app-payment-values [form]="form()" />
+        <app-payment-followup [form]="form()" />
+        <div class="form-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="form().invalid || saving() || actorId() === null"
+          >
+            {{ saving() ? 'Guardando...' : 'Crear registro' }}
+          </button>
+          <button mat-button type="button" (click)="cancelled.emit()">Cancelar</button>
+        </div>
+      </form>
+    </section>

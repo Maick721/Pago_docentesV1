@@ -1,0 +1,51 @@
+<section class="action-panel">
+  <div>
+    <p class="eyebrow">
+      {{
+        action() === 'ready'
+          ? 'MARCAR LISTO PARA PAGO'
+          : action() === 'approval'
+            ? 'REGISTRAR APROBACIÓN MANUAL'
+            : 'CONFIRMAR PAGO'
+      }}
+    </p>
+    <h2>{{ payment().docente }} · {{ payment().modulo }}</h2>
+    <p>
+      {{
+        action() === 'ready'
+          ? 'Ingresa el monto para crear el registro de pago pendiente.'
+          : action() === 'approval'
+            ? 'La aprobación automática por correo aún no está conectada.'
+            : 'Confirma el pago y registra los datos del comprobante.'
+      }}
+    </p>
+  </div>
+  <form class="action-form" [formGroup]="form" (ngSubmit)="confirm()">
+    @if (action() === 'ready') {
+      <mat-form-field appearance="outline">
+        <mat-label>Monto a pagar (USD)</mat-label>
+        <input matInput type="number" min="0.01" step="0.01" formControlName="monto" />
+      </mat-form-field>
+    }
+    @if (action() === 'approval' || action() === 'paid') {
+      <mat-form-field appearance="outline">
+        <mat-label>Observación</mat-label>
+        <input matInput formControlName="observacion" />
+      </mat-form-field>
+    }
+    @if (action() === 'paid') {
+      <mat-form-field appearance="outline">
+        <mat-label>Número de factura</mat-label>
+        <input matInput formControlName="numero_factura" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Número de comprobante</mat-label>
+        <input matInput formControlName="numero_comprobante" />
+      </mat-form-field>
+    }
+    <button mat-flat-button color="primary" type="submit" [disabled]="actorId() === null">
+      Confirmar
+    </button>
+    <button mat-button type="button" (click)="cancelled.emit()">Cancelar</button>
+  </form>
+</section>

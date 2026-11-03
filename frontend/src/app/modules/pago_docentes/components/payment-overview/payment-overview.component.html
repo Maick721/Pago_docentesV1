@@ -1,0 +1,77 @@
+<section class="summary-grid" aria-label="Resumen de pagos">
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <span class="summary-label">Registros</span>
+      <strong>{{ summary()?.total ?? 0 }}</strong>
+      <span class="summary-hint">{{ summary()?.listos ?? 0 }} listos para pago</span>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <span class="summary-label">Pendientes de pago</span>
+      <strong>{{ summary()?.por_pagar ?? 0 }}</strong>
+      <span class="summary-hint">{{ formatMoney(summary()?.monto_pendiente ?? 0) }}</span>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="summary-card summary-warning">
+    <mat-card-content>
+      <span class="summary-label">Aprobados atrasados</span>
+      <strong>{{ summary()?.en_mora ?? 0 }}</strong>
+      <span class="summary-hint">
+        Superan {{ threshold() }} {{ thresholdUnit() === 'DIAS' ? 'días' : 'meses' }} desde aprobación
+      </span>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="summary-card summary-warning">
+    <mat-card-content>
+      <span class="summary-label">Listos atrasados</span>
+      <strong>{{ summary()?.listos_atrasados ?? 0 }}</strong>
+      <span class="summary-hint">
+        Superan {{ threshold() }} {{ thresholdUnit() === 'DIAS' ? 'días' : 'meses' }} desde que quedaron listos
+      </span>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <span class="summary-label">Pagados</span>
+      <strong>{{ summary()?.pagados ?? 0 }}</strong>
+      <span class="summary-hint">{{ formatMoney(summary()?.monto_pagado ?? 0) }}</span>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section class="alerts-panel" aria-labelledby="alerts-heading">
+  <div class="section-title">
+    <div>
+      <p class="eyebrow">SEGUIMIENTO</p>
+      <h2 id="alerts-heading">Alertas de pago</h2>
+    </div>
+    <span class="result-count">{{ alerts().length }} activas</span>
+  </div>
+  @if (alerts().length === 0) {
+    <p class="alerts-empty">No hay pagos atrasados que superen el umbral vigente.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Docente / módulo</th>
+            <th>Carrera / periodo</th>
+            <th>Días transcurridos</th>
+            <th>Referencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (alert of alerts(); track alert.id_modulo) {
+            <tr>
+              <td><strong>{{ alert.docente.nombre }}</strong><span class="secondary-text">{{ alert.nombre_modulo }}</span></td>
+              <td><strong>{{ alert.carrera }}</strong><span class="secondary-text">{{ alert.periodo }}</span></td>
+              <td><span class="alert-number">{{ alert.dias_transcurridos }} / {{ alert.umbral }} {{ alert.unidad === 'DIAS' ? 'días' : 'meses' }}</span></td>
+              <td>{{ formatDate(alert.fecha_referencia) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

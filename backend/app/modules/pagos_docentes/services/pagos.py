@@ -57,12 +57,16 @@ async def listar_opciones(session: AsyncSession) -> PaymentLookups:
     ).all()
     careers = (
         await session.execute(
-            select(CoreAcademicCatalogRef.id_catalogo, CoreAcademicCatalogRef.nombre)
+            select(
+                CoreAcademicCatalogRef.id_catalogo,
+                CoreAcademicCatalogRef.nombre,
+                CoreAcademicCatalogRef.descripcion,
+            )
             .where(
                 CoreAcademicCatalogRef.tipo == "CARRERA",
                 CoreAcademicCatalogRef.estado.is_(True),
             )
-            .order_by(CoreAcademicCatalogRef.nombre)
+            .order_by(CoreAcademicCatalogRef.descripcion, CoreAcademicCatalogRef.nombre)
         )
     ).all()
     return PaymentLookups(
@@ -77,7 +81,11 @@ async def listar_opciones(session: AsyncSession) -> PaymentLookups:
         ],
         periodos=[LookupOption(id=row.id_periodo, nombre=row.nombre) for row in periods],
         carreras=[
-            LookupOption(id=row.id_catalogo, nombre=row.nombre or "")
+            LookupOption(
+                id=row.id_catalogo,
+                nombre=row.nombre or "",
+                grupo=row.descripcion,
+            )
             for row in careers
             if row.nombre is not None
         ],
