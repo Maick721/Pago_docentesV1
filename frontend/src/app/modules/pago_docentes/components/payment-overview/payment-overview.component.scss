@@ -12,7 +12,25 @@
 .alerts-panel {
   background: #fff;
   border: 1px solid var(--itq-border);
-  border-radius: 10px;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgb(5 5 5 / 8%);
+}
+
+.summary-card {
+  transition:
+    transform .35s cubic-bezier(.2, .9, .2, 1.2),
+    box-shadow .3s;
+  animation: payment-card-rise .7s calc(.15s + var(--card-order, 0) * 70ms) both;
+}
+
+.summary-card:nth-child(2) { --card-order: 1; }
+.summary-card:nth-child(3) { --card-order: 2; }
+.summary-card:nth-child(4) { --card-order: 3; }
+.summary-card:nth-child(5) { --card-order: 4; }
+
+.summary-card:hover {
+  transform: perspective(1000px) translateY(-4px) rotateX(1deg);
+  box-shadow: 14px 18px 32px rgb(5 5 5 / 13%);
 }
 
 .summary-card mat-card-content {
@@ -38,9 +56,8 @@
 }
 
 .summary-warning {
-  background: #fff8f9;
-  border-color: #f0b6bf;
-  border-top: 3px solid var(--itq-red);
+  background: linear-gradient(145deg, #fff 20%, #fff1f3 100%);
+  border-color: #edc8ce;
 }
 
 .summary-warning strong,
@@ -51,6 +68,8 @@
 .alerts-panel {
   margin-top: 22px;
   padding: 22px;
+  border-radius: 20px;
+  animation: payment-card-rise .7s .3s both;
 }
 
 .section-title {
@@ -78,6 +97,7 @@
 .alerts-empty {
   margin: 0;
   padding: 14px 18px;
+  border-radius: 10px;
   background: #f5f5f5;
   border-left: 3px solid #050505;
   color: #5c5c5c;
@@ -129,9 +149,45 @@ td strong,
   font-size: 11px;
 }
 
+@keyframes payment-card-rise {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+}
+
+@keyframes payment-card-reveal {
+  from {
+    opacity: 0;
+    translate: 0 38px;
+    scale: .97;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .summary-card {
+    animation: payment-card-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+  }
+}
+
 @media (max-width: 900px) {
   .summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary-card,
+  .alerts-panel {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+
+  .summary-card:hover {
+    transform: none;
   }
 }
 

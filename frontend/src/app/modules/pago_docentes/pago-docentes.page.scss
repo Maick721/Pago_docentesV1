@@ -1,16 +1,26 @@
 :host {
   display: block;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 0% 12%, rgb(227 30 54 / 11%), transparent 32rem),
+    linear-gradient(135deg, #f8f8f8, #ededed);
 }
 
 .topbar {
   position: sticky;
   z-index: 10;
-  top: 0;
-  min-height: 64px;
-  padding: 0 clamp(20px, 5vw, 72px);
+  top: 12px;
+  width: min(1320px, calc(100% - 48px));
+  min-height: 58px;
+  margin: 12px auto 0;
+  padding: 0 20px;
   color: var(--itq-ink);
-  background: #fff;
-  border-bottom: 2px solid var(--itq-red);
+  background: rgb(255 255 255 / 82%);
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgb(5 5 5 / 10%);
+  backdrop-filter: blur(12px);
+  animation: payment-rise .7s both;
 }
 
 .brand-lockup,
@@ -59,7 +69,7 @@
 .dashboard {
   width: min(1320px, calc(100% - 48px));
   margin: auto;
-  padding: 38px 0 56px;
+  padding: 24px 0 56px;
 }
 
 .page-heading,
@@ -72,7 +82,17 @@
 }
 
 .page-heading {
-  margin-bottom: 26px;
+  min-height: 172px;
+  margin-bottom: 24px;
+  padding: 28px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 75%);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 96% 8%, transparent 0 70px, rgb(255 255 255 / 35%) 71px 84px, transparent 85px 104px, rgb(255 255 255 / 24%) 105px 118px, transparent 119px),
+    linear-gradient(110deg, #fff 0%, #fff8f9 52%, #f1cfd3 100%);
+  box-shadow: 0 14px 30px rgb(5 5 5 / 10%);
+  animation: payment-rise .7s .1s both;
 }
 
 .heading-controls {
@@ -103,7 +123,7 @@
 
 .eyebrow {
   margin: 0 0 8px;
-  color: var(--itq-blue);
+  color: var(--itq-red);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .12em;
@@ -134,13 +154,13 @@ h2 {
 
 .intro {
   margin-bottom: 0;
-  color: #64748b;
+  color: #686868;
 }
 
 .notice {
   margin-bottom: 18px;
   padding: 12px 16px;
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .notice-error {
@@ -159,7 +179,9 @@ h2 {
 .payments-section {
   background: #fff;
   border: 1px solid var(--itq-border);
-  border-radius: 10px;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgb(5 5 5 / 8%);
+  animation: payment-rise .7s .2s both;
 }
 
 .settings-row p,
@@ -208,8 +230,17 @@ h2 {
 .integration-note {
   margin-top: 18px;
   padding: 15px 18px;
+  border: 1px solid #f0d7da;
   border-left: 3px solid var(--itq-red);
+  border-radius: 12px;
   background: #fff8f9;
+}
+
+@keyframes payment-rise {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -221,12 +252,13 @@ h2 {
 @media (max-width: 600px) {
   .dashboard {
     width: calc(100% - 32px);
-    padding-top: 26px;
+    padding-top: 18px;
   }
 
   .topbar {
     min-height: 58px;
-    padding: 0 16px;
+    width: calc(100% - 32px);
+    padding: 0 14px;
   }
 
   .brand-logo {
@@ -255,6 +287,11 @@ h2 {
   .settings-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .page-heading {
+    min-height: auto;
+    padding: 22px 18px;
   }
 
   .heading-controls {
@@ -295,5 +332,14 @@ h2 {
 
   .payments-section {
     padding: 18px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar,
+  .page-heading,
+  .settings-row,
+  .payments-section {
+    animation: none;
   }
 }

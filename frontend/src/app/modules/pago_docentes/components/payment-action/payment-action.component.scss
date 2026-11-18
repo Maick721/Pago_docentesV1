@@ -1,19 +1,21 @@
 .action-panel {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
   margin-top: 22px;
   padding: 26px;
-  background: #fff;
-  border: 1px solid var(--itq-border);
-  border-radius: 10px;
+  background: linear-gradient(115deg, #fff 0%, #fff8f9 64%, #f5dfe2 100%);
+  border: 1px solid #f0d7da;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px rgb(5 5 5 / 8%);
+  animation: payment-action-rise .7s .2s both;
 }
 
 .action-panel h2 {
   margin: 0;
   color: var(--itq-ink);
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .action-panel p {
@@ -23,7 +25,7 @@
 }
 
 .eyebrow {
-  color: var(--itq-blue);
+  color: var(--itq-red);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .12em;
@@ -32,11 +34,30 @@
 .action-form {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
 .action-form mat-form-field {
-  width: 104px;
+  width: 190px;
+}
+
+.action-form button {
+  min-height: 44px;
+  border-radius: 12px;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.action-form button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+@keyframes payment-action-rise {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -50,5 +71,24 @@
     width: 100%;
     align-items: flex-start;
     flex-wrap: wrap;
+  }
+
+  .action-form mat-form-field {
+    width: 100%;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .action-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-panel,
+  .action-form button {
+    animation: none;
+    transition: none;
   }
 }
