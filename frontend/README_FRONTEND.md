@@ -179,8 +179,8 @@ En los nombres anteriores, `.*` representa los archivos `.ts` y/o `.html` enumer
 
 ### Pendientes funcionales o de entorno
 
-- La interfaz aún no cuenta con inicio de sesión integrado: para operaciones de escritura pide un `id_usuario` existente y lo envía por query al backend. Es una dependencia temporal, no autenticación.
-- La variable `SECRET_KEY` del backend sigue pendiente de configuración en `backend/.env`; el inicio de sesión real no se ha verificado. Configurarla localmente sin compartirla ni subirla al repositorio.
+- El frontend no incluye pantalla de login. El interceptor adjunta el JWT disponible en `localStorage` bajo la clave `itq_access_token`; la autenticación/token debe ser proporcionada por el mecanismo existente.
+- El script raíz `scripts/setup.ps1` genera una `SECRET_KEY` local en `backend/.env`. No compartas ese archivo ni lo subas al repositorio.
 - El lookup del formulario usa carreras de tipo `CARRERA`. El catálogo puede incluir opciones de Validación, pero todavía no hay un selector independiente para escoger entre el catálogo regular y el de validación.
 - La aprobación automática por correo no está conectada; la aprobación disponible es manual. Redis/Celery y lectura de correo tampoco son funciones completadas del frontend/backend actual.
 - El alta depende de docentes, carreras y periodos reales devueltos por el backend. El frontend no crea esos datos de referencia.
@@ -229,7 +229,7 @@ El servicio utiliza `/api/v1/finance/payments`:
 | `POST` | `/{id}/paid` | Confirmar pago |
 | `GET` | `/{id}/history` | Consultar historial |
 
-El proxy de desarrollo usa `http://127.0.0.1:8000`. Actualmente las operaciones de escritura requieren el `id_usuario` indicado por el backend.
+El proxy de desarrollo usa `http://127.0.0.1:8000`. Las solicitudes se autentican mediante Bearer JWT; el backend toma la identidad del operador desde el token.
 
 ## Verificación actual
 

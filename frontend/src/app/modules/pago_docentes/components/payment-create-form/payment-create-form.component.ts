@@ -35,7 +35,6 @@ import { PaymentsService } from '../../services/payments.service';
 export class PaymentCreateFormComponent {
   readonly form = input.required<PaymentCreateForm>();
   readonly lookups = input.required<PaymentLookups>();
-  readonly actorId = input<number | null>(null);
   readonly saving = signal(false);
   readonly started = output<void>();
   readonly created = output<void>();
@@ -54,12 +53,8 @@ export class PaymentCreateFormComponent {
 
   createPayment(): void {
     const form = this.form();
-    const actorId = this.actorId();
-    if (form.invalid || this.saving() || actorId === null) {
+    if (form.invalid || this.saving()) {
       form.markAllAsTouched();
-      if (actorId === null) {
-        this.failed.emit('Indica un usuario existente para registrar la operación.');
-      }
       return;
     }
 
@@ -134,7 +129,7 @@ export class PaymentCreateFormComponent {
       contrato: optionalText(values.contrato),
       datos_modelo: details,
     };
-    this.api.createPayment(payment, actorId).subscribe({
+    this.api.createPayment(payment).subscribe({
       next: () => {
         form.reset();
         this.saving.set(false);

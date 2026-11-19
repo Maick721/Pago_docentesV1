@@ -34,10 +34,10 @@ Core concentra los modelos compartidos de personas, usuarios, roles, permisos,
 empleados y catálogos. La autenticación genera y valida JWT, y las rutas de Core
 requieren un usuario autenticado.
 
-**Pendiente:** configurar una `SECRET_KEY` segura en `backend/.env` y probar
-login, expiración y rechazo de usuarios inactivos. La clave no debe compartirse
-ni subirse al repositorio. También falta terminar de aplicar permisos por rol a
-las operaciones de los módulos.
+El script `scripts/setup.ps1` crea `backend/.env` con una `SECRET_KEY` aleatoria
+local. El archivo no debe compartirse ni subirse al repositorio. La autenticación
+JWT está integrada en Pagos a Docentes; los demás módulos todavía requieren
+revisar sus permisos específicos por rol.
 
 ### Documentos
 
@@ -81,11 +81,13 @@ Incluye registro de pagos, filtros, estados, historial, aprobaciones manuales,
 resumen y avisos de atraso en la API. El importe se ingresa manualmente; los
 cálculos de hojas externas todavía no se aplican.
 
-**Pendiente importante:** el router aún acepta un `id_usuario` enviado como
-parámetro en algunas escrituras, en vez de obtenerlo del JWT. También falta
-aplicar permisos por rol y probar las operaciones de escritura con usuarios y
-referencias reales. Las aprobaciones por correo y alertas automáticas aún no
-están implementadas.
+Las rutas requieren JWT; el actor de las escrituras se obtiene del usuario
+autenticado y no de un `id_usuario` enviado por el cliente. Las operaciones de
+escritura verifican roles institucionales (`administrador`, `coordinador`,
+`financiero` y `tesorero`, según la acción). Falta validar las asignaciones con
+usuarios de prueba y ejecutar los flujos de escritura en una base PostgreSQL
+desechable. Las aprobaciones por correo y alertas automáticas aún no están
+implementadas.
 
 La migración `database/pagos_docentes/pagos_docentes_runtime_compat_v2.sql`
 corresponde a una actualización ya aplicada en la base de desarrollo revisada.
@@ -98,13 +100,9 @@ de esquemas y una colección Postman; las instrucciones están en
 `tests/pagos_docentes/README.md`. La colección no incluye transiciones exitosas
 porque escriben en la base de datos.
 
-En una comprobación HTTP local, las consultas de resumen, alertas, configuración,
-lookups y lista filtrada respondieron 200; la paginación inválida y el alta con
-body incompleto respondieron 422, sin crear registros. También comprobé que un
-GET con bearer inválido responde 200: las rutas actuales no validan JWT, lo que
-debe corregirse antes de exponer datos de pagos. La colección todavía no se ha
-ejecutado desde la interfaz de Postman y las pruebas Python de esquemas quedan
-pendientes de correr con un intérprete de proyecto autorizado.
+Las pruebas enfocadas verifican el paso del actor JWT al servicio y el rechazo
+de roles no financieros. La colección Postman debe actualizarse/ejecutarse para
+validar 401 y 403 contra una instancia local.
 
 ### Vacaciones
 
@@ -146,16 +144,17 @@ No subas `.env`, contraseñas, tokens ni respaldos de base de datos.
 
 ## Ejecutar y probar
 
-Desde la raíz del repositorio, crea el entorno e instala las dependencias:
+Desde la raíz del repositorio, prepara backend, frontend, variables locales y
+servicios con:
 
 ```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r backend\requirements.txt
-if (!(Test-Path backend\.env)) { Copy-Item backend\.env.example backend\.env }
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 ```
 
-Configura las variables locales y ejecuta la API:
+Para los comandos completos de inicio y los límites actuales de la base,
+consulta la sección de preparación en el `README.md` raíz. El entorno Docker
+inicializa actualmente un esquema antiguo de pagos y no reemplaza la preparación
+de los esquemas operativos actuales.
 
 ```powershell
 Set-Location backend

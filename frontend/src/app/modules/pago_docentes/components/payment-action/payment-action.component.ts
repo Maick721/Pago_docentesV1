@@ -16,7 +16,6 @@ import { PaymentsService } from '../../services/payments.service';
 export class PaymentActionComponent implements OnChanges {
   readonly payment = input.required<TeacherPayment>();
   readonly action = input.required<PaymentActionType>();
-  readonly actorId = input<number | null>(null);
   readonly cancelled = output<void>();
   readonly completed = output<string>();
   readonly failed = output<string>();
@@ -38,20 +37,18 @@ export class PaymentActionComponent implements OnChanges {
   confirm(): void {
     const payment = this.payment();
     const action = this.action();
-    const actorId = this.actorId();
     const values = this.form.getRawValue();
-    if (actorId === null || (action === 'ready' && (values.monto === null || values.monto <= 0))) {
+    if (action === 'ready' && (values.monto === null || values.monto <= 0)) {
       this.form.markAllAsTouched();
-      if (actorId === null) this.failed.emit('Indica un usuario existente para registrar la operación.');
       return;
     }
 
     const optionalText = (value: string | null): string | null => value?.trim() || null;
     const request = action === 'ready'
-      ? this.api.markReady(payment.id, Number(values.monto), actorId)
+      ? this.api.markReady(payment.id, Number(values.monto))
       : action === 'approval'
-        ? this.api.recordApproval(payment.id, optionalText(values.observacion), actorId)
-        : this.api.markPaid(payment.id, actorId, {
+        ? this.api.recordApproval(payment.id, optionalText(values.observacion))
+        : this.api.markPaid(payment.id, {
             observacion: optionalText(values.observacion),
             numero_factura: optionalText(values.numero_factura),
             numero_comprobante: optionalText(values.numero_comprobante),

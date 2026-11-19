@@ -98,10 +98,6 @@ export class PagoDocentesPage implements OnInit {
     valor: [30, [Validators.required, Validators.min(1), Validators.max(365)]],
     unidad: this.fb.control<ThresholdUnit>('DIAS', Validators.required),
   });
-  protected readonly actorForm = this.fb.group({
-    id_usuario: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-  });
-
   ngOnInit(): void {
     this.paymentRequests
       .pipe(
@@ -219,13 +215,7 @@ export class PagoDocentesPage implements OnInit {
       this.thresholdForm.markAllAsTouched();
       return;
     }
-    const actorId = this.actorId();
-    if (actorId === null) {
-      this.actorForm.markAllAsTouched();
-      this.error.set('Indica un usuario existente para guardar la configuración.');
-      return;
-    }
-    this.api.saveSettings(valor, unidad, actorId).subscribe({
+    this.api.saveSettings(valor, unidad).subscribe({
       next: (settings) => {
         this.threshold.set(settings.valor);
         this.thresholdUnit.set(settings.unidad);
@@ -267,11 +257,6 @@ export class PagoDocentesPage implements OnInit {
     }
     this.page.set(page);
     this.loadPayments();
-  }
-
-  protected actorId(): number | null {
-    const value = this.actorForm.controls.id_usuario.value;
-    return value !== null && Number.isInteger(value) && value > 0 ? value : null;
   }
 
 }

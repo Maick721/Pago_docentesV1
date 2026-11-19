@@ -280,7 +280,9 @@ INSERT INTO core.roles (nombre, descripcion) VALUES
     ('administrador',  'Acceso total al sistema ITQ Conecta'),
     ('coordinador',    'Coordinador de eventos de graduación'),
     ('validador',      'Personal de validación de acceso en ceremonia'),
-    ('consultor',      'Acceso de solo lectura')
+    ('consultor',      'Acceso de solo lectura'),
+    ('financiero',     'Gestión y autorización de pagos a docentes'),
+    ('tesorero',       'Confirmación de pagos aprobados')
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Usuario administrador inicial (contraseña: Admin@ITQ2026)

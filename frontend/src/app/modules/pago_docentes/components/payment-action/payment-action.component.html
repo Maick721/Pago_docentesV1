@@ -43,7 +43,7 @@
         <input matInput formControlName="numero_comprobante" />
       </mat-form-field>
     }
-    <button mat-flat-button color="primary" type="submit" [disabled]="actorId() === null">
+    <button mat-flat-button color="primary" type="submit">
       Confirmar
     </button>
     <button mat-button type="button" (click)="cancelled.emit()">Cancelar</button>

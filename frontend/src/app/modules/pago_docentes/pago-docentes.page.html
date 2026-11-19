@@ -19,11 +19,6 @@
       </p>
     </div>
     <div class="heading-controls">
-      <form class="actor-picker" [formGroup]="actorForm">
-        <label for="actor-id">ID de operador</label>
-        <input id="actor-id" type="number" min="1" formControlName="id_usuario" />
-        <small>Debe existir en core.usuarios</small>
-      </form>
       <button
         mat-flat-button
         color="primary"
@@ -69,7 +64,7 @@
       <button
         mat-stroked-button
         type="submit"
-        [disabled]="thresholdForm.invalid || actorId() === null"
+        [disabled]="thresholdForm.invalid"
       >
         Guardar umbral
       </button>
@@ -81,7 +76,6 @@
       <app-payment-create-form
         [form]="createForm"
         [lookups]="lookups()"
-        [actorId]="actorId()"
         (started)="paymentSubmissionStarted()"
         (created)="paymentCreated()"
         (failed)="error.set($event)"
@@ -95,7 +89,6 @@
       <app-payment-action
         [payment]="selected.payment"
         [action]="selected.action"
-        [actorId]="actorId()"
         (cancelled)="cancelAction()"
         (completed)="paymentActionCompleted($event)"
         (failed)="error.set($event)"

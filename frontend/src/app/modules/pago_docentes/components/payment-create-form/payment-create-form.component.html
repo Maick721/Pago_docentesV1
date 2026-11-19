@@ -163,7 +163,7 @@
             mat-flat-button
             color="primary"
             type="submit"
-            [disabled]="form().invalid || saving() || actorId() === null"
+            [disabled]="form().invalid || saving()"
           >
             {{ saving() ? 'Guardando...' : 'Crear registro' }}
           </button>

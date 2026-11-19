@@ -40,11 +40,10 @@ export class PaymentsService {
     return this.http.get<PaymentSettings>(`${this.baseUrl}/settings`);
   }
 
-  saveSettings(valor: number, unidad: ThresholdUnit, actorId: number): Observable<PaymentSettings> {
+  saveSettings(valor: number, unidad: ThresholdUnit): Observable<PaymentSettings> {
     return this.http.put<PaymentSettings>(
       `${this.baseUrl}/settings`,
       { valor, unidad },
-      { params: this.actorParams(actorId) },
     );
   }
 
@@ -52,47 +51,37 @@ export class PaymentsService {
     return this.http.get<PaymentLookups>(`${this.baseUrl}/lookups`);
   }
 
-  createPayment(payment: PaymentDraft, actorId: number): Observable<TeacherPayment> {
-    return this.http.post<TeacherPayment>(this.baseUrl, payment, {
-      params: this.actorParams(actorId),
-    });
+  createPayment(payment: PaymentDraft): Observable<TeacherPayment> {
+    return this.http.post<TeacherPayment>(this.baseUrl, payment);
   }
 
-  markReady(id: number, monto: number, actorId: number): Observable<TeacherPayment> {
+  markReady(id: number, monto: number): Observable<TeacherPayment> {
     return this.http.post<TeacherPayment>(
       `${this.baseUrl}/${id}/ready`,
       { monto },
-      { params: this.actorParams(actorId) },
     );
   }
 
-  recordApproval(id: number, observacion: string | null, actorId: number): Observable<TeacherPayment> {
+  recordApproval(id: number, observacion: string | null): Observable<TeacherPayment> {
     return this.http.post<TeacherPayment>(
       `${this.baseUrl}/${id}/approval`,
       { observacion },
-      { params: this.actorParams(actorId) },
     );
   }
 
   markPaid(
     id: number,
-    actorId: number,
     details: {
       observacion: string | null;
       numero_factura: string | null;
       numero_comprobante: string | null;
     },
   ): Observable<TeacherPayment> {
-    return this.http.post<TeacherPayment>(`${this.baseUrl}/${id}/paid`, details, {
-      params: this.actorParams(actorId),
-    });
+    return this.http.post<TeacherPayment>(`${this.baseUrl}/${id}/paid`, details);
   }
 
   getHistory(id: number): Observable<PaymentHistory[]> {
     return this.http.get<PaymentHistory[]>(`${this.baseUrl}/${id}/history`);
   }
 
-  private actorParams(actorId: number): HttpParams {
-    return new HttpParams().set('id_usuario', actorId);
-  }
 }
