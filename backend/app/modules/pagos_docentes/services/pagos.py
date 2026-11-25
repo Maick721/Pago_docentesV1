@@ -141,7 +141,7 @@ async def listar_pagos(
 async def crear_pago(
     body: PaymentCreate,
     session: AsyncSession,
-    actor_id: int,
+    actor_id: int | None,
 ) -> PaymentRead:
     teacher = await session.get(Teacher, body.id_docente)
     if teacher is None or not teacher.estado:

@@ -31,13 +31,14 @@ backend/
 ### Autenticación y Core
 
 Core concentra los modelos compartidos de personas, usuarios, roles, permisos,
-empleados y catálogos. La autenticación genera y valida JWT, y las rutas de Core
-requieren un usuario autenticado.
+empleados y catálogos. La autenticación genera y valida JWT; varias rutas de
+Core requieren un usuario activo autenticado. Las rutas de Pagos a Docentes no
+requieren actualmente JWT ni validan roles.
 
-El script `scripts/setup.ps1` crea `backend/.env` con una `SECRET_KEY` aleatoria
-local. El archivo no debe compartirse ni subirse al repositorio. La autenticación
-JWT está integrada en Pagos a Docentes; los demás módulos todavía requieren
-revisar sus permisos específicos por rol.
+El script `scripts/setup.ps1` crea `backend/.env` desde el archivo de ejemplo y
+genera una `SECRET_KEY` local si todavía contiene el valor predeterminado. El
+archivo no debe compartirse ni subirse al repositorio. La autorización por rol
+debe revisarse por módulo; Pagos a Docentes está temporalmente sin autenticación.
 
 ### Documentos
 
@@ -81,13 +82,10 @@ Incluye registro de pagos, filtros, estados, historial, aprobaciones manuales,
 resumen y avisos de atraso en la API. El importe se ingresa manualmente; los
 cálculos de hojas externas todavía no se aplican.
 
-Las rutas requieren JWT; el actor de las escrituras se obtiene del usuario
-autenticado y no de un `id_usuario` enviado por el cliente. Las operaciones de
-escritura verifican roles institucionales (`administrador`, `coordinador`,
-`financiero` y `tesorero`, según la acción). Falta validar las asignaciones con
-usuarios de prueba y ejecutar los flujos de escritura en una base PostgreSQL
-desechable. Las aprobaciones por correo y alertas automáticas aún no están
-implementadas.
+Por ahora, las rutas de Pagos a Docentes no requieren inicio de sesión ni roles.
+Los registros de actividad dejan el usuario actor vacío hasta que se implemente
+la autenticación. La autenticación de los demás módulos sigue habilitada. Las
+aprobaciones por correo y alertas automáticas aún no están implementadas.
 
 La migración `database/pagos_docentes/pagos_docentes_runtime_compat_v2.sql`
 corresponde a una actualización ya aplicada en la base de desarrollo revisada.
@@ -100,9 +98,9 @@ de esquemas y una colección Postman; las instrucciones están en
 `tests/pagos_docentes/README.md`. La colección no incluye transiciones exitosas
 porque escriben en la base de datos.
 
-Las pruebas enfocadas verifican el paso del actor JWT al servicio y el rechazo
-de roles no financieros. La colección Postman debe actualizarse/ejecutarse para
-validar 401 y 403 contra una instancia local.
+Las escrituras de pagos no identifican un usuario actor mientras el módulo
+continúe sin autenticación. Ejecuta las pruebas con los comandos de la sección
+**Ejecutar y probar** y usa una base desechable para validar escrituras.
 
 ### Vacaciones
 
@@ -121,18 +119,19 @@ ejecutes toda la carpeta en bloque sobre una instalación existente.
 
 ### Celery, Redis y correo
 
-Celery está configurado como base para trabajo futuro. Por ahora,
-`app/tasks.py` solo contiene una tarea de prueba; no hay un proceso terminado de
-envío de correos ni de alertas automáticas. Falta iniciar y configurar Redis,
-definir el flujo de correo y probar worker y scheduler.
+Celery está configurado como base para trabajo futuro y Compose define Redis.
+Por ahora, `app/tasks.py` solo contiene una tarea de prueba; no hay tareas de
+lectura de correos, alertas automáticas, worker ni scheduler implementados.
 
 ## Base de datos y configuración
 
 La aplicación comparte un solo `Base` y una configuración de conexión
 asíncrona. Cada módulo usa los esquemas PostgreSQL que le corresponden. La base
 de desarrollo revisada no está completa para todas las rutas: faltan cuatro
-tablas `docs`, cinco tablas de catálogos académicos `core` y cuatro columnas de
-Graduación, detalladas arriba.
+tablas `docs`, cinco tablas declaradas por modelos de Core (`academic_programs`,
+`academic_periods`, `campus`, `academic_modalities` y `academic_parallels`) y
+cuatro columnas de Graduación, detalladas arriba. Comprueba el esquema de cada
+entorno antes de aplicar cambios.
 
 Docker Compose monta `database/pagos_docentes/init.sql` al crear un volumen
 vacío. Ese archivo solo prepara el esquema antiguo `financiera`; por eso una
@@ -152,9 +151,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 ```
 
 Para los comandos completos de inicio y los límites actuales de la base,
-consulta la sección de preparación en el `README.md` raíz. El entorno Docker
-inicializa actualmente un esquema antiguo de pagos y no reemplaza la preparación
-de los esquemas operativos actuales.
+consulta la sección de preparación en el [README de la raíz](../README.md). El
+entorno Docker inicializa actualmente un esquema antiguo de pagos y no reemplaza
+la preparación de los esquemas operativos actuales.
 
 ```powershell
 Set-Location backend
@@ -167,6 +166,6 @@ La documentación de rutas está en `/api/docs`. Para correr las pruebas:
 ..\.venv\Scripts\python.exe -m pytest -q
 ```
 
-En la revisión local pasaron 135 pruebas y la aplicación registró 92 rutas en
-OpenAPI. Aún faltan pruebas integrales de autenticación y operaciones de
-escritura contra una base PostgreSQL preparada para pruebas.
+El resultado de las pruebas depende del estado actual del código y del entorno.
+Las pruebas con escrituras deben ejecutarse contra una base PostgreSQL
+desechable o de pruebas, no contra datos reales.

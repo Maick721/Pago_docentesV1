@@ -222,7 +222,7 @@ async def _agregar_historial(
     module: TeacherModule,
     old_status: str | None,
     new_status: str,
-    actor_id: int,
+    actor_id: int | None,
     note: str | None = None,
 ) -> None:
     session.add(

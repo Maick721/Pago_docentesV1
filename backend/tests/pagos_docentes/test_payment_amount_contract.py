@@ -7,9 +7,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app.core.database import get_db_session
-from app.core.security import get_current_user
 from app.main import app
-from app.modules.core.models.core import Rol, Usuario, UsuarioRol
 from app.modules.pagos_docentes.schemas import PaymentRead, PaymentReady
 
 
@@ -26,24 +24,13 @@ def test_payment_ready_rejects_invalid_decimal_boundaries(amount: str) -> None:
         PaymentReady.model_validate({"monto": amount})
 
 
-def test_ready_endpoint_passes_decimal_amount_unchanged() -> None:
+def test_ready_endpoint_allows_unauthenticated_write_and_preserves_decimal() -> None:
     previous_overrides = app.dependency_overrides.copy()
 
     async def override_db_session():
         yield None
 
-    async def override_current_user():
-        usuario = Usuario(id_usuario=9, nombre_usuario="qa", estado=True)
-        usuario.roles = [
-            UsuarioRol(
-                estado=True,
-                rol=Rol(nombre="administrador", estado=True),
-            )
-        ]
-        return usuario
-
     app.dependency_overrides[get_db_session] = override_db_session
-    app.dependency_overrides[get_current_user] = override_current_user
     try:
         payment_response = PaymentRead(
             id=1,
@@ -75,39 +62,7 @@ def test_ready_endpoint_passes_decimal_amount_unchanged() -> None:
         mark_ready.assert_awaited_once()
         _, body, _, actor_id = mark_ready.await_args.args
         assert body.monto == Decimal("1250.10")
-        assert actor_id == 9
-    finally:
-        app.dependency_overrides.clear()
-        app.dependency_overrides.update(previous_overrides)
-
-
-@pytest.mark.parametrize("role", ["consultor", "validador"])
-def test_ready_endpoint_rejects_user_without_financial_role(role: str) -> None:
-    previous_overrides = app.dependency_overrides.copy()
-
-    async def override_db_session():
-        yield None
-
-    async def override_current_user():
-        usuario = Usuario(id_usuario=10, nombre_usuario="read-only", estado=True)
-        usuario.roles = [
-            UsuarioRol(
-                estado=True,
-                rol=Rol(nombre=role, estado=True),
-            )
-        ]
-        return usuario
-
-    app.dependency_overrides[get_db_session] = override_db_session
-    app.dependency_overrides[get_current_user] = override_current_user
-    try:
-        with TestClient(app) as client:
-            response = client.post(
-                "/api/v1/finance/payments/1/ready",
-                json={"monto": "1250.10"},
-            )
-
-        assert response.status_code == 403
+        assert actor_id is None
     finally:
         app.dependency_overrides.clear()
         app.dependency_overrides.update(previous_overrides)
