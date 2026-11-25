@@ -13,7 +13,7 @@ Admisiones (CRM), Pagos a Docentes y Vacaciones.
 | Documentos | Rutas y modelos para documentos, archivos, versiones y revisiones. | Crear/verificar sus cuatro tablas en la base de desarrollo y probar el flujo completo de archivos y revisiones. |
 | Graduación | Eventos, pases y validación por QR o cédula. | Alinear cuatro columnas que faltan en las tablas `graduacion.pases` y `graduacion.qr`, y volver a probar sus rutas con la base. |
 | Admisiones (CRM) | Prospectos, responsables, seguimientos, cambios de estado y conversión a aspirantes. | Añadir permisos por rol y comprobar que el responsable de cada acción corresponda al usuario autenticado. |
-| Pagos a Docentes | Registro, filtros, estados de pago, historial, resumen y alertas visibles en la API. | JWT y permisos por rol están integrados; falta validar los roles y flujos con usuarios reales de prueba. Los importes siguen siendo manuales. |
+| Pagos a Docentes | Registro, filtros, estados de pago, historial, resumen y alertas visibles en la API. | El módulo está temporalmente sin login ni roles; los importes siguen siendo manuales. |
 | Vacaciones | Solicitudes, saldos, aprobaciones, permisos, feriados e históricos. | Añadir permisos por rol y comprobar la relación entre el usuario autenticado, los empleados y las solicitudes. |
 | Celery y correo | La aplicación Celery está preparada para ampliarse. | Implementar las tareas de alertas/correo y configurar y probar Redis; por ahora las tareas de negocio no están terminadas. |
 

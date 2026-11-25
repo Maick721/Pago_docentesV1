@@ -24,7 +24,7 @@ async def marcar_listo(
     payment_id: int,
     body: PaymentReady,
     session: AsyncSession,
-    actor_id: int,
+    actor_id: int | None,
 ) -> PaymentRead:
     module = await _obtener_modulo(session, payment_id)
     if module.estado != PaymentStatus.EN_CURSO.value or module.listo_para_pago:
@@ -64,7 +64,7 @@ async def registrar_aprobacion(
     payment_id: int,
     body: PaymentApproval,
     session: AsyncSession,
-    actor_id: int,
+    actor_id: int | None,
 ) -> PaymentRead:
     module = await _obtener_modulo(session, payment_id)
     if module.estado != PaymentStatus.LISTO_PAGO.value:
@@ -115,7 +115,7 @@ async def marcar_pagado(
     payment_id: int,
     body: PaymentCompletion,
     session: AsyncSession,
-    actor_id: int,
+    actor_id: int | None,
 ) -> PaymentRead:
     module = await _obtener_modulo(session, payment_id)
     if module.estado != PaymentStatus.APROBADO.value:

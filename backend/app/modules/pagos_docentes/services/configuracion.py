@@ -10,7 +10,7 @@ from app.modules.pagos_docentes.services.comun import DEFAULT_THRESHOLD
 async def actualizar_configuracion(
     body: PaymentSettingsUpdate,
     session: AsyncSession,
-    actor_id: int,
+    actor_id: int | None,
 ) -> PaymentSettingsRead:
     config = await session.scalar(
         select(PaymentConfig)
